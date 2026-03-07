@@ -61,8 +61,6 @@ def get_scorecard(series_id, match_id):
             "Wickets",
             "Econ",
             "Dots",
-            "4s",
-            "6s",
             "Wd",
             "Nb",
             "Team",
@@ -78,7 +76,7 @@ def get_scorecard(series_id, match_id):
                     player_id = player_id_col[0]["href"].split("-")[-1]
                     cols = row.find_all("td")
                     cols = [x.text.strip() for x in cols]
-                    if len(cols) > 5:
+                    if len(cols) > 8:
                         bowler_df = bowler_df.append(
                             pd.Series(
                                 [
@@ -91,8 +89,6 @@ def get_scorecard(series_id, match_id):
                                     cols[6],
                                     cols[7],
                                     cols[8],
-                                    cols[9],
-                                    cols[10],
                                     (i == 0) + 1,
                                     player_id,
                                 ],
@@ -135,20 +131,19 @@ def get_scorecard(series_id, match_id):
             if len(cols[0].split("Did not bat")) > 1:
                 cols = row.find_all("td")
                 player_id_col = cols[0].find_all("a", href=True)
-                player_ids = [player["href"].split("-")[-1] for player in player_id_col]
-                dnb_cols = cols[0].find_all("span")
-                dnb = [x.text.strip().split("(c)")[0] for x in dnb_cols]
-                dnb = [re.sub(r"\W+", " ", x).strip() for x in dnb]
-                dnb = [x for x in dnb if not bool(re.search(r"\d", x)) and x != ""]
-                dnb = [i for n, i in enumerate(dnb) if i not in dnb[:n]]
-                for idx, dnb_batsman in enumerate(dnb):
-                    batsmen_df = batsmen_df.append(
-                        pd.Series(
-                            [dnb_batsman, "DNB", 0, 0, 0, 0, 0, i + 1, player_ids[idx]],
-                            index=batsmen_df.columns,
-                        ),
-                        ignore_index=True,
-                    )
+                for player_anchor in player_id_col:
+                    player_id = player_anchor["href"].split("-")[-1]
+                    dnb_name = player_anchor.get_text(strip=True).rstrip(",").strip()
+                    dnb_name = dnb_name.split("(c)")[0].strip()
+                    dnb_name = re.sub(r"\W+", " ", dnb_name).strip()
+                    if dnb_name:
+                        batsmen_df = batsmen_df.append(
+                            pd.Series(
+                                [dnb_name, "DNB", 0, 0, 0, 0, 0, i + 1, player_id],
+                                index=batsmen_df.columns,
+                            ),
+                            ignore_index=True,
+                        )
 
             elif len(cols) > 2:
                 batsmen_df = batsmen_df.append(
@@ -299,19 +294,19 @@ def get_scorecard(series_id, match_id):
             fielder_df.loc[fielder_df["Player_id"] == mom_id, "bonus_points"] += 25
 
     ### Winning team points
-    if table_body[4].find_all("tr")[-1].find_all("td")[0].text == "Points":
-        match_points = table_body[4].find_all("tr")[-1].find_all("td")[1].text
-        team_name_index = {
-            bs.find_all(
-                "span", {"class": "ds-text-title-xs ds-font-bold ds-capitalize"}
-            )[0].text: 1,
-            bs.find_all(
-                "span", {"class": "ds-text-title-xs ds-font-bold ds-capitalize"}
-            )[1].text: 2,
-        }
-        if match_points.find("2") != -1:
-            winner = match_points.split("2")[0].strip()
-            winner_index = team_name_index[winner]
+    innings_teams = []
+    for span in bs.find_all("span"):
+        txt = span.get_text(strip=True)
+        if txt.endswith(" Innings"):
+            abbr = txt.replace(" Innings", "").strip()
+            if abbr not in innings_teams:
+                innings_teams.append(abbr)
+    result_tag = bs.find("p", string=lambda t: t and "won by" in t)
+    if result_tag and len(innings_teams) >= 2:
+        winner_abbr = result_tag.get_text(strip=True).split(" won by")[0].strip()
+        team_name_index = {innings_teams[0]: 1, innings_teams[1]: 2}
+        winner_index = team_name_index.get(winner_abbr)
+        if winner_index:
             fielder_df.loc[fielder_df["Team"] == winner_index, "bonus_points"] += 5
 
     total_df = (
