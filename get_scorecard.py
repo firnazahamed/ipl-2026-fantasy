@@ -187,12 +187,20 @@ def _resolve_fielder(fielder_df: pd.DataFrame, fielder: str, fielding_team: int)
 
 
 def _get_mom_id(bs) -> Optional[str]:
-    """Return the player-id string for the Man of the Match, or None."""
-    for item in bs.find_all("div", {"class": "ds-flex ds-justify-between ds-items-center"}):
-        if "Player Of The Match" in item.text:
-            anchor = item.find("a")
+    """Return the player-id string for the Man of the Match, or None.
+
+    Searches by text content rather than a specific CSS class so it stays
+    robust when ESPN updates their layout.
+    """
+    for text_node in bs.find_all(string=lambda t: t and "Player Of The Match" in t):
+        container = text_node.parent
+        for _ in range(6):  # walk up at most 6 ancestor levels
+            if container is None or container.name == "body":
+                break
+            anchor = container.find("a", href=lambda h: h and "/cricketers/" in h)
             if anchor:
                 return anchor["href"].split("-")[-1]
+            container = container.parent
     return None
 
 
