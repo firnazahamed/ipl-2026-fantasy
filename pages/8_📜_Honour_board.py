@@ -8,9 +8,9 @@ seasons = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
 honour_board = pd.DataFrame(
     {
         "Season": seasons,
-        "Winner": ["Ashkay", "Mabbu", "Saju", "Saju", "Firi", "Firi", "Vaithy", "TBD"],
-        "Runner-up": ["Mabbu", "Bhar", "Siddhu", "Srini", "Bhar", "Srini", "Ashkay", "TBD"],
-        "Second runner-up": ["Bhar", "Shar", "Srini", "Firi", "Saju", "Ashkay", "Abhi", "TBD"],
+        "Winner": ["Ashkay", "Mabbu", "Saju", "Saju", "Firi", "Firi", "Vaithy", "Srini"],
+        "Runner-up": ["Mabbu", "Bhar", "Siddhu", "Srini", "Bhar", "Srini", "Ashkay", "Mabbu"],
+        "Second runner-up": ["Bhar", "Shar", "Srini", "Firi", "Saju", "Ashkay", "Abhi", "Firi"],
     }
 ).set_index("Season")
 
