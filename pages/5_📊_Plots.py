@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import plotly.graph_objects as go
+import plotly.express as px
 from altair import datum
 from helpers import read_file
 from get_standings import retrieve_scorecards
@@ -23,7 +25,102 @@ cumsum_df = cumsum_df.rename(
     }
 )
 st.header("Draft Standings Race")
-st.line_chart(cumsum_df.T)
+
+matches = sorted(cumsum_df.columns.tolist())
+owners = sorted(cumsum_df.index.tolist())
+color_seq = px.colors.qualitative.D3
+owner_colors = {o: color_seq[i % len(color_seq)] for i, o in enumerate(owners)}
+
+def _race_frame(match):
+    return cumsum_df[match].fillna(0).sort_values(ascending=True)
+
+init = _race_frame(matches[0])
+max_pts = int(cumsum_df.max().max() * 1.18)
+
+race_fig = go.Figure(
+    data=[go.Bar(
+        x=init.values.astype(int),
+        y=init.index,
+        orientation="h",
+        marker_color=[owner_colors[o] for o in init.index],
+        text=init.values.astype(int),
+        textposition="outside",
+        cliponaxis=False,
+    )],
+    frames=[
+        go.Frame(
+            data=[go.Bar(
+                x=_race_frame(m).values.astype(int),
+                y=_race_frame(m).index,
+                orientation="h",
+                marker_color=[owner_colors[o] for o in _race_frame(m).index],
+                text=_race_frame(m).values.astype(int),
+                textposition="outside",
+                cliponaxis=False,
+            )],
+            layout=go.Layout(
+                yaxis={"categoryorder": "array", "categoryarray": _race_frame(m).index.tolist()},
+                title_text=f"After Match {m}",
+            ),
+            name=str(m),
+        )
+        for m in matches
+    ],
+    layout=go.Layout(
+        height=430,
+        margin=dict(l=80, r=80, t=50, b=60),
+        xaxis=dict(range=[0, max_pts], showgrid=True),
+        yaxis=dict(categoryorder="array", categoryarray=init.index.tolist()),
+        title=dict(text=f"After Match {matches[0]}", x=0.5),
+        showlegend=False,
+        updatemenus=[{
+            "type": "buttons",
+            "showactive": False,
+            "y": -0.18,
+            "x": 0.5,
+            "xanchor": "center",
+            "yanchor": "top",
+            "buttons": [
+                {
+                    "label": "▶ Play",
+                    "method": "animate",
+                    "args": [None, {
+                        "frame": {"duration": 800, "redraw": True},
+                        "fromcurrent": True,
+                        "transition": {"duration": 600, "easing": "cubic-in-out"},
+                    }],
+                },
+                {
+                    "label": "⏸ Pause",
+                    "method": "animate",
+                    "args": [[None], {"frame": {"duration": 0, "redraw": False}, "mode": "immediate"}],
+                },
+            ],
+        }],
+        sliders=[{
+            "active": 0,
+            "currentvalue": {"prefix": "Match ", "font": {"size": 13}, "xanchor": "center"},
+            "transition": {"duration": 600, "easing": "cubic-in-out"},
+            "pad": {"t": 40},
+            "len": 0.9,
+            "x": 0.05,
+            "steps": [
+                {
+                    "args": [[str(m)], {
+                        "frame": {"duration": 800, "redraw": True},
+                        "mode": "immediate",
+                        "transition": {"duration": 600, "easing": "cubic-in-out"},
+                    }],
+                    "label": str(m),
+                    "method": "animate",
+                }
+                for m in matches
+            ],
+        }],
+    ),
+)
+
+st.plotly_chart(race_fig, use_container_width=True)
 
 # Draft Standings Evolution Plot
 # Melt into long format
