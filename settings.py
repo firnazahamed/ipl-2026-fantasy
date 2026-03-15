@@ -16,7 +16,7 @@ weeks = {
 
 owner_team_dict = {
     "Mabbu": "Malayoor Mambattiyaans",
-    "Siddhu": "Virumandies",
+    "Siddhu": "The Spartacus 11",
     "Bhar": "Galactic Federation",
     "Srini": "Jeipomda XI",
     "Saju": "The Wolfpack",
@@ -24,7 +24,7 @@ owner_team_dict = {
     "Jilla": "J Kullis",
     "Ash": "Come on Ash!",
     "Firi": "Fiery Dragons",
-    "Shar": "Ambidextrous Amphibians",
+    "Shar": "Budget Padmanabhans",
     "Vaithy": "Thayir Saadham",
 }
 
