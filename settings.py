@@ -309,6 +309,6 @@ player_id_dict = {
  }
 
 service_account_credentials = "credentials/cricinfo-273202-a7420ddc1abd.json"
-squads_spreadsheet_url = "https://docs.google.com/spreadsheets/d/10_pC20ejAGskLCxZQzMBmKGJR0V_Uo7oUQB8g5wkM6s/"  # TODO: Update with 2026 squads Google Sheet URL
-unsold_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1fjAAHr11yVIqSDvf6d1ifUx1OlrbamC3Q4pFtNfd7kY/"  # TODO: Update with 2026 unsold players Google Sheet URL
-trades_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1ZmtYLXSHLK_a1VBYFIFnV4aB8nSbrgz12kDWLegvHeQ/"  # TODO: Update with 2026 trades Google Sheet URL
+squads_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1LppmTsHXmr97cxYCo2rWNffKXNeATsrFR4MmbksQ1WA/"
+unsold_spreadsheet_url = "https://docs.google.com/spreadsheets/d/11W5lg-qqZdIO97iCdDDF6rlcyXStQDumMVYaNDDjl_k/"
+trades_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1LRGRU9ZYUA6XMQKR0maaaaXbv88RZy6Wp8Z2YpQVlQ8/"

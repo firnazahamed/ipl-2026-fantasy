@@ -1,20 +1,11 @@
 import streamlit as st
-import pandas as pd
-from helpers import get_client, read_file
-from settings import bucket_name
+from helpers import read_gsheet, list_gsheet_tabs
+from settings import squads_spreadsheet_url
 
-client = get_client()
-
-squads = sorted(
-    [
-        blob.name.strip("Squads/").strip(".csv")
-        for blob in client.list_blobs(bucket_name, prefix="Squads")
-    ],
-    reverse=True,
-)
+squads = sorted(list_gsheet_tabs(squads_spreadsheet_url), reverse=True)
 
 option = st.selectbox("Select week", squads)
 
-squad_df = read_file(bucket_name, f"Squads/{option}.csv")
+squad_df = read_gsheet(squads_spreadsheet_url, option)
 st.subheader("Squad")
 st.dataframe(squad_df)

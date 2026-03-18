@@ -54,6 +54,22 @@ def retrieve_scorecards():
     return scorecards
 
 
+@st.cache_data(ttl=600)
+def read_gsheet(spreadsheet_url, sheet_name):
+    import gspread
+    gc = gspread.service_account_from_dict(dict(st.secrets["gcp_service_account"]))
+    worksheet = gc.open_by_url(spreadsheet_url).worksheet(sheet_name)
+    data = worksheet.get_all_values()
+    return pd.DataFrame(data[1:], columns=data[0])
+
+
+@st.cache_data(ttl=600)
+def list_gsheet_tabs(spreadsheet_url):
+    import gspread
+    gc = gspread.service_account_from_dict(dict(st.secrets["gcp_service_account"]))
+    return [ws.title for ws in gc.open_by_url(spreadsheet_url).worksheets()]
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread
