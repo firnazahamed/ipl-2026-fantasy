@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
 from helpers import read_file, read_gsheet
-from settings import retentions_list, rtm_list, bucket_name, unsold_spreadsheet_url
+from settings import retentions_list, rtm_list, bucket_name, unsold_spreadsheet_url, price_list_spreadsheet_url
 
 st.set_page_config(layout="wide")
 st.title("Player performance statistics")
 
 unsold_df = read_gsheet(unsold_spreadsheet_url, "Unsold_players")
-prices_df = read_file(bucket_name, "price_list.csv")
+prices_df = read_gsheet(price_list_spreadsheet_url, "price_list")
 agg_points_df = read_file(bucket_name, "Outputs/agg_points_df.csv")
 
 df = prices_df.merge(agg_points_df, left_on="Player_name", right_on="Name_batting")
