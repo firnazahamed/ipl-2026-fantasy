@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
-from helpers import read_file
-from settings import retentions_list, rtm_list, bucket_name
+from helpers import read_file, read_gsheet
+from settings import retentions_list, rtm_list, bucket_name, unsold_spreadsheet_url
 
 st.set_page_config(layout="wide")
 st.title("Player performance statistics")
 
-unsold_df = read_file(bucket_name, "Unsold_players.csv")
+unsold_df = read_gsheet(unsold_spreadsheet_url, "Unsold_players")
 prices_df = read_file(bucket_name, "price_list.csv")
 agg_points_df = read_file(bucket_name, "Outputs/agg_points_df.csv")
 

@@ -1,9 +1,7 @@
 import streamlit as st
-import pandas as pd
-from helpers import read_file
-from settings import bucket_name
+from helpers import read_gsheet
+from settings import unsold_spreadsheet_url
 
-unsold_df = read_file(bucket_name, "Unsold_players.csv")
+unsold_df = read_gsheet(unsold_spreadsheet_url, "Unsold_players")
 st.header("Unsold Players")
-# st.dataframe(unsold_df)
 st.table(unsold_df)
