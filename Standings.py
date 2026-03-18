@@ -95,9 +95,9 @@ for rank, row in standings_df.iterrows():
             <span style="font-weight:600; font-size:14px;">{row['Owner']}</span>
             <span style="color:#888; font-size:12px; margin-left:6px;">{row['Team']}</span>
         </div>
-        <div style="text-align:right; flex-shrink:0;">
-            <span style="font-size:20px; font-weight:700; color:#f97316;">{int(row['Points'])}</span>
-            &nbsp;{last_badge}
+        <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <span style="font-size:20px; font-weight:700; color:#f97316; min-width:44px; text-align:right;">{int(row['Points'])}</span>
+            <span style="min-width:34px; text-align:left;">{last_badge}</span>
         </div>
     </div>
     <div style="margin-top:5px; background:rgba(255,255,255,0.08); border-radius:3px; height:3px;">
