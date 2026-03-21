@@ -5,27 +5,44 @@ from helpers import read_file
 
 st.set_page_config(layout="wide")
 
-seasons = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
-winners        = ["Ashkay", "Mabbu", "Saju",   "Saju",  "Firi",  "Firi",   "Vaithy", "Srini"]
-runners_up     = ["Mabbu",  "Bhar",  "Siddhu", "Srini", "Bhar",  "Srini",  "Ashkay", "Mabbu"]
-second_runners = ["Bhar",   "Shar",  "Srini",  "Firi",  "Saju",  "Ashkay", "Abhi",   "Firi"]
+ipl_data = pd.DataFrame({
+    "Season": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "Winner":          ["Ashkay", "Mabbu", "Saju",   "Saju",  "Firi",  "Firi",   "Vaithy", "Srini"],
+    "Runner-up":       ["Mabbu",  "Bhar",  "Siddhu", "Srini", "Bhar",  "Srini",  "Ashkay", "Mabbu"],
+    "Second runner-up":["Bhar",   "Shar",  "Srini",  "Firi",  "Saju",  "Ashkay", "Abhi",   "Firi"],
+    "Type": "IPL",
+})
 
-honour_board = pd.DataFrame({
-    "Season": seasons,
-    "Winner": winners,
-    "Runner-up": runners_up,
-    "Second runner-up": second_runners,
-}).set_index("Season")
+wc_data = pd.DataFrame({
+    "Season": [2019, 2023],
+    "Winner":          ["Ashkay", "Bhar"],
+    "Runner-up":       ["Srini",  "Firi"],
+    "Second runner-up":["Shar",   "Ashkay"],
+    "Type": "WC",
+})
+
+seasons = ipl_data["Season"].tolist()
+
+honour_board = (
+    pd.concat([ipl_data, wc_data], ignore_index=True)
+    .sort_values("Season", ascending=False)
+)
+
+STYLE = {
+    "IPL": {"border": "#f59e0b", "badge_bg": "#f59e0b", "badge_fg": "#000", "label": "IPL"},
+    "WC":  {"border": "#10b981", "badge_bg": "#10b981", "badge_fg": "#fff", "label": "WC"},
+}
 
 # ── Season history cards ──────────────────────────────────────────────────────
 st.markdown("## 🏆 Honour Board")
 
-for season, row in honour_board.sort_index(ascending=False).iterrows():
+for _, row in honour_board.iterrows():
+    s = STYLE[row["Type"]]
     st.markdown(
         f"""
 <div style="
-    border: 1px solid #f59e0b30;
-    border-left: 4px solid #f59e0b;
+    border: 1px solid {s['border']}30;
+    border-left: 4px solid {s['border']};
     border-radius: 8px;
     padding: 10px 18px;
     margin-bottom: 6px;
@@ -33,7 +50,8 @@ for season, row in honour_board.sort_index(ascending=False).iterrows():
     align-items: center;
     gap: 32px;
 ">
-    <span style="font-size:20px; font-weight:800; color:#f59e0b; min-width:46px;">{season}</span>
+    <span style="font-size:20px; font-weight:800; color:{s['border']}; min-width:46px;">{int(row['Season'])}</span>
+    <span style="background:{s['badge_bg']}; color:{s['badge_fg']}; font-size:11px; font-weight:700; border-radius:4px; padding:2px 7px;">{s['label']}</span>
     <span style="font-size:15px;">🥇&nbsp;<strong>{row['Winner']}</strong></span>
     <span style="font-size:15px; color:#aaa;">🥈&nbsp;{row['Runner-up']}</span>
     <span style="font-size:15px; color:#aaa;">🥉&nbsp;{row['Second runner-up']}</span>
@@ -46,10 +64,14 @@ for season, row in honour_board.sort_index(ascending=False).iterrows():
 st.markdown("---")
 st.markdown("### Trophy Tally")
 
-win_count    = Counter(winners)
-runner_count = Counter(runners_up)
-second_count = Counter(second_runners)
-all_owners   = sorted(set(winners) | set(runners_up) | set(second_runners))
+all_winners        = honour_board["Winner"].tolist()
+all_runners_up     = honour_board["Runner-up"].tolist()
+all_second_runners = honour_board["Second runner-up"].tolist()
+
+win_count    = Counter(all_winners)
+runner_count = Counter(all_runners_up)
+second_count = Counter(all_second_runners)
+all_owners   = sorted(set(all_winners) | set(all_runners_up) | set(all_second_runners))
 
 tally = (
     pd.DataFrame({
@@ -61,6 +83,8 @@ tally = (
     .sort_values(["🥇", "🥈", "🥉"], ascending=False)
     .set_index("Owner")
 )
+
+st.caption("Includes IPL and World Cup results")
 
 def _gold(v):
     return "background-color: #fcd34d; color: #000; font-weight: 700;" if v > 0 else "color: #555;"
