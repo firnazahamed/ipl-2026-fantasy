@@ -25,7 +25,10 @@ seasons = ipl_data["Season"].tolist()
 
 honour_board = (
     pd.concat([ipl_data, wc_data], ignore_index=True)
-    .sort_values("Season", ascending=False)
+    .assign(TypeOrder=lambda d: d["Type"].map({"IPL": 2, "WC": 1}))
+    .sort_values("TypeOrder", ascending=True)
+    .sort_values("Season", ascending=False, kind="stable")
+    .drop(columns="TypeOrder")
 )
 
 STYLE = {

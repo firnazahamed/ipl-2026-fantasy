@@ -127,9 +127,12 @@ def _calc_bowling_points(bowler_df: pd.DataFrame) -> pd.DataFrame:
         .apply(lambda x: int(x[0]) * 6 + int(x[1]) if len(x) > 1 else int(x[0]) * 6)
     )
     df["base_points"] = 25 * df["Wickets"]
-    df["pace_points"] = 1.5 * df["Balls"] - df["Runs"]
-    df["pace_points"] = df["pace_points"].apply(
-        lambda x: np.round(x * 2.5) if x > 0 else np.round(x)
+    df["Econ"] = df["Econ"].astype(float)
+    df["pace_points"] = df.apply(
+        lambda r: np.round(3 * (r["Balls"] * 1.5 - r["Runs"])) if r["Econ"] < 9
+        else (0 if r["Econ"] <= 12
+        else np.round(r["Balls"] * 2 - r["Runs"])),
+        axis=1,
     )
     df["milestone_points"] = df["Wickets"].replace(
         {0: 0, 1: 0, 2: 10, 3: 20, 4: 30, 5: 50, 6: 50, 7: 50, 8: 50}
