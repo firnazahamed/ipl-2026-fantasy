@@ -104,6 +104,7 @@ def add_player_to_unsold(spreadsheet_url, player_name, team="", role="", price="
         "player name": player_name,
         "team": team,
         "role": role,
+        "category": role,  # GSheet may use "Category" instead of "Role"
     }
     # Match any header containing "price"
     row = []
