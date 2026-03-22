@@ -70,6 +70,52 @@ def list_gsheet_tabs(spreadsheet_url):
     return [ws.title for ws in gc.open_by_url(spreadsheet_url).worksheets()]
 
 
+def _gspread_client():
+    import gspread
+    return gspread.service_account_from_dict(dict(st.secrets["gcp_service_account"]))
+
+
+def write_trade(spreadsheet_url, owner, transfer_type, player_in, player_out, week_effective):
+    """Fill the next empty row in the owner's trade tab."""
+    ws = _gspread_client().open_by_url(spreadsheet_url).worksheet(owner)
+    rows = ws.get_all_values()
+    for i, row in enumerate(rows[1:], start=2):  # skip header row
+        if len(row) < 2 or not row[1].strip():
+            ws.update(f"B{i}:E{i}", [[transfer_type, player_in, player_out, week_effective]])
+            return
+    # All pre-filled rows used — append a new one
+    ws.append_row([len(rows), transfer_type, player_in, player_out, week_effective])
+
+
+def remove_player_from_unsold(spreadsheet_url, player_name):
+    ws = _gspread_client().open_by_url(spreadsheet_url).worksheet("Unsold_players")
+    cell = ws.find(player_name)
+    if cell:
+        ws.delete_rows(cell.row)
+
+
+def add_player_to_unsold(spreadsheet_url, player_name, team="", role="", price=""):
+    ws = _gspread_client().open_by_url(spreadsheet_url).worksheet("Unsold_players")
+    rows = ws.get_all_values()
+    headers = rows[0] if rows else []
+    next_sno = len(rows)
+    lookup = {
+        "s.no": str(next_sno),
+        "player name": player_name,
+        "team": team,
+        "role": role,
+    }
+    # Match any header containing "price"
+    row = []
+    for h in headers:
+        key = h.strip().lower()
+        if "price" in key:
+            row.append(str(price))
+        else:
+            row.append(lookup.get(key, ""))
+    ws.append_row(row)
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread
