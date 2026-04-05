@@ -117,6 +117,63 @@ def add_player_to_unsold(spreadsheet_url, player_name, team="", role="", price="
     ws.append_row(row)
 
 
+def write_squad(spreadsheet_url, week_name, owner, squad_rows):
+    """Write an owner's squad to the week tab in the squads GSheet.
+
+    squad_rows: list of exactly 15 player names ordered as:
+        [0]     = captain  (also in playing XI)
+        [1]     = vice-captain  (also in playing XI)
+        [2-10]  = remaining 9 playing XI players
+        [11-14] = 4 bench/reserve players (use "" for empty slots)
+
+    GSheet layout (data rows, after header row 1):
+        Rows  2–12  → Playing XI  (11 players)
+        Rows 13–16  → Empty       (4 blank separator rows)
+        Rows 17–20  → Bench       (4 players)
+
+    Creates the week worksheet if it doesn't exist.
+    Updates only the owner's column, leaving every other column untouched.
+    """
+    import gspread
+    from settings import owner_team_dict
+
+    gc = _gspread_client()
+    sh = gc.open_by_url(spreadsheet_url)
+
+    # Get or create the week worksheet
+    try:
+        ws = sh.worksheet(week_name)
+        headers = ws.row_values(1)
+    except gspread.exceptions.WorksheetNotFound:
+        owners = list(owner_team_dict.keys())
+        ws = sh.add_worksheet(title=week_name, rows=20, cols=len(owners))
+        ws.update("A1", [owners])
+        headers = owners
+
+    if owner not in headers:
+        raise ValueError(f"Owner '{owner}' not found in sheet headers: {headers}")
+
+    col_idx = headers.index(owner) + 1  # 1-based
+
+    xi    = squad_rows[:11]   # Playing XI  → rows 2–12
+    bench = squad_rows[11:15] # Bench        → rows 17–20
+
+    # Write Playing XI (rows 2–12)
+    xi_start = gspread.utils.rowcol_to_a1(2, col_idx)
+    xi_end   = gspread.utils.rowcol_to_a1(12, col_idx)
+    ws.update(f"{xi_start}:{xi_end}", [[p] for p in xi])
+
+    # Clear separator rows 13–16
+    sep_start = gspread.utils.rowcol_to_a1(13, col_idx)
+    sep_end   = gspread.utils.rowcol_to_a1(16, col_idx)
+    ws.update(f"{sep_start}:{sep_end}", [[""], [""], [""], [""]])
+
+    # Write bench rows 17–20
+    bench_start = gspread.utils.rowcol_to_a1(17, col_idx)
+    bench_end   = gspread.utils.rowcol_to_a1(20, col_idx)
+    ws.update(f"{bench_start}:{bench_end}", [[p] for p in bench])
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread

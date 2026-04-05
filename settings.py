@@ -1,5 +1,21 @@
 bucket_name = "summer-is-coming-2026"
 
+# Number of matches each IPL team plays per gameweek.
+# Weeks 9–10 (playoffs) are TBD and omitted.
+team_fixtures = {
+    #        W1  W2  W3  W4  W5  W6  W7  W8
+    "CSK":  [ 2,  1,  2,  2,  1,  2,  2,  2],
+    "DC":   [ 1,  2,  1,  2,  3,  2,  1,  2],
+    "GT":   [ 1,  2,  2,  2,  2,  1,  2,  2],
+    "KKR":  [ 2,  2,  2,  1,  1,  2,  1,  3],
+    "LSG":  [ 1,  2,  2,  2,  1,  2,  2,  2],
+    "MI":   [ 1,  2,  2,  2,  1,  2,  2,  2],
+    "PBKS": [ 2,  1,  2,  1,  2,  2,  2,  2],
+    "RCB":  [ 1,  2,  2,  2,  2,  1,  2,  2],
+    "RR":   [ 1,  3,  1,  2,  3,  0,  1,  3],
+    "SRH":  [ 2,  1,  2,  2,  2,  2,  2,  2],
+}
+
 weeks = {
     "Week1": {"matches": [str(1527673 + i) for i in range(1, 8)]},      # Matches 1-7, Mar 28 - Apr 3
     "Week2": {"matches": [str(1527673 + i) for i in range(8, 17)]},     # Matches 8-16, Apr 4 - Apr 10
