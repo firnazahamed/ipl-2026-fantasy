@@ -1,17 +1,16 @@
 import streamlit as st
 import pandas as pd
 import os
-from google.oauth2 import service_account
-from google.cloud import storage
 from io import BytesIO
 
 # Create API client.
 def get_client():
+    from google.oauth2 import service_account
+    from google.cloud import storage
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"]
     )
     client = storage.Client(credentials=credentials)
-
     return client
 
 
@@ -29,7 +28,7 @@ def read_file(bucket_name, file_path, format="csv", sheet_name=None):
 
 
 def upload_df_to_gcs(df, file_path, bucket_name):
-
+    from google.cloud import storage
     # Setting credentials using the downloaded JSON file
     client = storage.Client.from_service_account_json(
         json_credentials_path="credentials/cricinfo-273202-a7420ddc1abd.json"
