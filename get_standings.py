@@ -28,10 +28,12 @@ def retrieve_team_info():
         players_df = pd.read_csv(f"./Squads/{sheet_title}")
         squad_df = pd.concat([squad_df, players_df], ignore_index=True)
         captain_dict = {}
+        vice_captain_dict = {}
         playing_11_dict = {}
         reserve_dict = {}
         for owner in players_df.columns:
             captain_dict[owner] = players_df[owner][0]
+            vice_captain_dict[owner] = players_df[owner][1]
             playing_11_dict[owner] = players_df[owner][:11].values
             reserve_dict[owner] = players_df[owner][11:15].values
 
@@ -40,6 +42,7 @@ def retrieve_team_info():
             "playing_11_dict": playing_11_dict,
             "reserve_dict": reserve_dict,
             "captain_dict": captain_dict,
+            "vice_captain_dict": vice_captain_dict,
         }
 
     squad_dict = {
@@ -104,6 +107,18 @@ def create_score_df(
                 playing_df["Player"].isin(weekly_dicts[week]["captain_dict"].values())
             ]["total_points"]
             .apply(lambda x: np.ceil(x * 1.5))
+            .astype(int)
+        )
+
+        ## 1.2x points for vice-captain
+        playing_df.loc[
+            playing_df["Player"].isin(weekly_dicts[week]["vice_captain_dict"].values()),
+            "total_points",
+        ] = (
+            playing_df.loc[
+                playing_df["Player"].isin(weekly_dicts[week]["vice_captain_dict"].values())
+            ]["total_points"]
+            .apply(lambda x: np.ceil(x * 1.2))
             .astype(int)
         )
 
