@@ -231,7 +231,7 @@ if applied_trades:
     msgs = " · ".join(f"~~{o}~~ → **{i}**" for o, i in applied_trades)
     st.info(f"Trades applied for {submit_week}: {msgs}")
 
-# ── Default & session state ────────────────────────────────────────────────────
+# ── Default checkbox state (set once per owner+week) ──────────────────────────
 default_xi = [p for p in prev_xi if p in squad_pool]
 for p in squad_pool:
     if len(default_xi) >= 11:
@@ -240,56 +240,46 @@ for p in squad_pool:
         default_xi.append(p)
 
 state_key = f"xi_{owner}_{submit_week}"
-if state_key not in st.session_state:
-    st.session_state[state_key] = default_xi[:11]
+for p in squad_pool:
+    cb_key = f"cb_{p}_{state_key}"
+    if cb_key not in st.session_state:
+        st.session_state[cb_key] = p in default_xi
 
-xi_list    = st.session_state[state_key]
+# Current XI derived from checkbox state
+xi_list    = [p for p in squad_pool if st.session_state.get(f"cb_{p}_{state_key}", False)]
 bench_list = [p for p in squad_pool if p not in xi_list]
 xi_full    = len(xi_list) >= 11
+xi_count   = len(xi_list)
 
-# ── Squad builder panels ───────────────────────────────────────────────────────
-panel_xi, panel_bench = st.columns(2, gap="large")
+# ── Squad picker ───────────────────────────────────────────────────────────────
+ok_color = "#16a34a" if xi_count == 11 else "#dc2626" if xi_count > 11 else "#d97706"
+st.markdown(
+    f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+    f'<span style="font-size:16px;font-weight:700">Select Playing XI</span>'
+    f'<span style="background:{ok_color};color:white;padding:2px 12px;'
+    f'border-radius:999px;font-size:13px;font-weight:700">{xi_count} / 11</span>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
+st.caption("Tick to include in Playing XI. Greyed out once 11 are selected.")
 
-def _panel_header(title, count_label, color):
-    return (
-        f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
-        f'<span style="font-size:16px;font-weight:700">{title}</span>'
-        f'<span style="background:{color};color:white;padding:2px 12px;'
-        f'border-radius:999px;font-size:13px;font-weight:700">{count_label}</span>'
-        f'</div>'
-    )
+with st.container(border=True):
+    for p in squad_pool:
+        cb_key   = f"cb_{p}_{state_key}"
+        is_in_xi = st.session_state.get(cb_key, False)
+        c_cb, c_info = st.columns([1, 9])
+        with c_cb:
+            # Do NOT pass value= — let session_state drive the checkbox entirely
+            st.checkbox("", key=cb_key, label_visibility="collapsed")
+        alpha = "1" if is_in_xi or not xi_full else "0.4"
+        c_info.markdown(
+            f'<div style="opacity:{alpha}">{_player_html(p)}</div>',
+            unsafe_allow_html=True,
+        )
 
-with panel_xi:
-    xi_count = len(xi_list)
-    ok_color = "#16a34a" if xi_count == 11 else "#dc2626" if xi_count > 11 else "#d97706"
-    st.markdown(_panel_header("Playing XI", f"{xi_count} / 11", ok_color), unsafe_allow_html=True)
-    st.caption("→ moves a player to bench")
-
-    with st.container(border=True):
-        if not xi_list:
-            st.caption("No players selected yet.")
-        for p in xi_list:
-            c_info, c_btn = st.columns([6, 1])
-            c_info.markdown(_player_html(p), unsafe_allow_html=True)
-            if c_btn.button("→", key=f"rem_{p}_{state_key}", help="Move to bench"):
-                st.session_state[state_key] = [x for x in xi_list if x != p]
-                st.rerun()
-
-with panel_bench:
-    st.markdown(_panel_header("Bench", str(len(bench_list)), "#6b7280"), unsafe_allow_html=True)
-    st.caption("← moves a player to Playing XI")
-
-    with st.container(border=True):
-        if not bench_list:
-            st.caption("All players are in the Playing XI.")
-        for p in bench_list:
-            c_info, c_btn = st.columns([6, 1])
-            c_info.markdown(_player_html(p), unsafe_allow_html=True)
-            if c_btn.button("←", key=f"add_{p}_{state_key}",
-                            disabled=xi_full, help="Add to Playing XI"):
-                st.session_state[state_key] = xi_list + [p]
-                st.rerun()
-
+# Derive XI from checkbox state after all widgets have rendered
+xi_list     = [p for p in squad_pool if st.session_state.get(f"cb_{p}_{state_key}", False)]
+bench_list  = [p for p in squad_pool if p not in xi_list]
 selected_xi = xi_list
 
 # ── Captain & Vice-Captain ─────────────────────────────────────────────────────
