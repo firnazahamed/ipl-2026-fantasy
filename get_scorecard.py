@@ -189,6 +189,40 @@ def _resolve_fielder(fielder_df: pd.DataFrame, fielder: str, fielding_team: int)
     return None
 
 
+def _parse_playing_xi(bs) -> list:
+    """Return [(Name, Player_id, team_idx), ...] for both teams' Playing XI.
+
+    Searches for 'Playing XI' text nodes then walks up the DOM to find the
+    enclosing container holding cricketer links.  Returns an empty list when
+    the section cannot be located (e.g. the page layout changed).
+    """
+    xi_groups = []
+    for text_node in bs.find_all(string=lambda t: t and "Playing XI" in t):
+        container = text_node.parent
+        for _ in range(8):
+            if container is None or container.name == "body":
+                break
+            links = container.find_all("a", href=lambda h: h and "/cricketers/" in h)
+            if len(links) >= 5:  # at least 5 players — looks like a real XI section
+                xi_groups.append(links)
+                break
+            container = container.parent
+
+    players = []
+    for team_idx, links in enumerate(xi_groups[:2], start=1):
+        seen: set[str] = set()
+        for link in links:
+            player_id = link["href"].split("-")[-1]
+            if player_id in seen:
+                continue
+            seen.add(player_id)
+            name = re.sub(r"\W+", " ", link.get_text(strip=True).split("(c)")[0]).strip()
+            if name:
+                players.append((name, player_id, team_idx))
+
+    return players
+
+
 def _get_mom_id(bs) -> Optional[str]:
     """Return the player-id string for the Man of the Match, or None.
 
@@ -270,6 +304,19 @@ def get_scorecard(series_id, match_id):
         .drop_duplicates()
         .reset_index(drop=True)
     )
+
+    # Supplement with the full Playing XI so that non-bowling fielders from
+    # incomplete/abandoned innings can still receive fielding points.
+    xi_players = _parse_playing_xi(bs)
+    if xi_players:
+        xi_df = pd.DataFrame(xi_players, columns=["Name", "Player_id", "Team"])
+        teams_df = (
+            pd.concat([teams_df, xi_df])
+            .drop_duplicates(subset=["Player_id"])
+            .reset_index(drop=True)
+        )
+    else:
+        print("Warning: Playing XI section not found; fielding points may be incomplete.")
 
     # --- Fielding ---
     fielder_df = teams_df.copy()
