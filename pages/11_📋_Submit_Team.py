@@ -258,6 +258,17 @@ xi_full    = len(xi_list) >= 11
 xi_count   = len(xi_list)
 
 # ── Squad picker ───────────────────────────────────────────────────────────────
+# Keep checkbox + player-info on the same line on mobile
+st.markdown("""
+<style>
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 ok_color = "#16a34a" if xi_count == 11 else "#dc2626" if xi_count > 11 else "#d97706"
 st.markdown(
     f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
@@ -311,12 +322,9 @@ vice_captain = None
 
 if selected_xi:
     st.markdown("**Captain & Vice-Captain**")
-    col_cap, col_vc = st.columns(2)
-    with col_cap:
-        captain = st.selectbox("🟡 Captain — 1.5× points", options=selected_xi)
-    with col_vc:
-        vc_opts      = [p for p in selected_xi if p != captain]
-        vice_captain = st.selectbox("🟠 Vice-Captain — 1.2× points", options=vc_opts) if vc_opts else None
+    captain = st.selectbox("🟡 Captain (1.5×)", options=selected_xi)
+    vc_opts      = [p for p in selected_xi if p != captain]
+    vice_captain = st.selectbox("🟠 Vice-Captain (1.2×)", options=vc_opts) if vc_opts else None
 
 # ── Combination check ──────────────────────────────────────────────────────────
 st.divider()
@@ -340,10 +348,14 @@ def _check_html(label, value, target):
         f'</div>'
     )
 
-c1, c2, c3 = st.columns(3)
-c1.markdown(_check_html("Can Bat",        batters,  7), unsafe_allow_html=True)
-c2.markdown(_check_html("Can Bowl",       bowlers,  5), unsafe_allow_html=True)
-c3.markdown(_check_html("Wicket-Keepers", wk_count, 1), unsafe_allow_html=True)
+st.markdown(
+    f'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    f'<div style="flex:1;min-width:110px">{_check_html("Can Bat",        batters,  7)}</div>'
+    f'<div style="flex:1;min-width:110px">{_check_html("Can Bowl",       bowlers,  5)}</div>'
+    f'<div style="flex:1;min-width:110px">{_check_html("Wicket-Keepers", wk_count, 1)}</div>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 
 # ── Submit ─────────────────────────────────────────────────────────────────────
 st.divider()
