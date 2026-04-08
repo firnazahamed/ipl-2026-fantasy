@@ -67,15 +67,15 @@ def _games_badge_html(player):
     if not team:
         return ""
     games = games_for_team(team)
+    team_html = _badge(team.upper(), "#e2e8f0", "#1e293b")
     if games is None:
-        return f'<span style="font-size:13px;font-weight:700;color:#6b7280">{team.upper()}</span>'
+        return team_html
     if games == 0:   bg, fg = "#fee2e2", "#991b1b"
     elif games == 1: bg, fg = "#fef3c7", "#92400e"
     elif games == 2: bg, fg = "#f3f4f6", "#374151"
     else:            bg, fg = "#d1fae5", "#065f46"
-    team_html  = f'<span style="font-size:13px;font-weight:700;color:#6b7280">{team.upper()}</span>'
     games_html = _badge(f"{games} game{'s' if games != 1 else ''}", bg, fg)
-    return f"{team_html}&nbsp;&nbsp;{games_html}"
+    return f"{team_html}&nbsp;{games_html}"
 
 def _player_html(player):
     role_b  = _role_badge_html(player)
@@ -83,7 +83,7 @@ def _player_html(player):
     badges  = "&nbsp;&nbsp;".join(x for x in [games_b, role_b] if x)
     return (
         f'<div style="padding:3px 0">'
-        f'<div style="font-size:15px;font-weight:600;color:#111827;margin-bottom:3px">{player}</div>'
+        f'<div style="font-size:15px;font-weight:600;margin-bottom:3px">{player}</div>'
         f'<div>{badges}</div>'
         f'</div>'
     )
