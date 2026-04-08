@@ -258,16 +258,17 @@ xi_full    = len(xi_list) >= 11
 xi_count   = len(xi_list)
 
 # ── Squad picker ───────────────────────────────────────────────────────────────
-# Keep checkbox + player-info on the same line on mobile
-st.markdown("""
-<style>
-div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] {
-    flex-direction: row !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-}
-</style>
-""", unsafe_allow_html=True)
+def _render_player_row(player, opacity=1.0):
+    """Checkbox with player name as label (always inline), badges on the next line."""
+    st.checkbox(player, key=f"cb_{player}_{state_key}")
+    role_b  = _role_badge_html(player)
+    games_b = _games_badge_html(player)
+    badges  = "&nbsp;&nbsp;".join(x for x in [games_b, role_b] if x)
+    if badges:
+        st.markdown(
+            f'<div style="margin:-14px 0 8px 28px;opacity:{opacity}">{badges}</div>',
+            unsafe_allow_html=True,
+        )
 
 ok_color = "#16a34a" if xi_count == 11 else "#dc2626" if xi_count > 11 else "#d97706"
 st.markdown(
@@ -284,10 +285,7 @@ with st.container(border=True):
     st.markdown(_section_label("PLAYING XI"), unsafe_allow_html=True)
     if xi_list:
         for p in xi_list:
-            c_cb, c_info = st.columns([1, 9])
-            with c_cb:
-                st.checkbox("", key=f"cb_{p}_{state_key}", label_visibility="collapsed")
-            c_info.markdown(_player_html(p), unsafe_allow_html=True)
+            _render_player_row(p)
     else:
         st.caption("No players selected yet — tick from the bench below.")
 
@@ -299,14 +297,7 @@ with st.container(border=True):
     )
     if bench_list:
         for p in bench_list:
-            c_cb, c_info = st.columns([1, 9])
-            with c_cb:
-                st.checkbox("", key=f"cb_{p}_{state_key}", label_visibility="collapsed")
-            alpha = "0.45" if xi_full else "1"
-            c_info.markdown(
-                f'<div style="opacity:{alpha}">{_player_html(p)}</div>',
-                unsafe_allow_html=True,
-            )
+            _render_player_row(p, opacity=0.45 if xi_full else 1.0)
     else:
         st.caption("All 15 players are in the Playing XI.")
 
