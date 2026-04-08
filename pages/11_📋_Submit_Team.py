@@ -82,10 +82,16 @@ def _player_html(player):
     games_b = _games_badge_html(player)
     badges  = "&nbsp;&nbsp;".join(x for x in [games_b, role_b] if x)
     return (
-        f'<div style="padding:3px 0">'
-        f'<div style="font-size:15px;font-weight:600;margin-bottom:3px">{player}</div>'
+        f'<div style="padding:4px 0">'
+        f'<div style="font-size:15px;font-weight:600;margin-bottom:4px">{player}</div>'
         f'<div>{badges}</div>'
         f'</div>'
+    )
+
+def _section_label(text):
+    return (
+        f'<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;'
+        f'opacity:0.45;padding:6px 0 4px">{text}</div>'
     )
 
 # ── Load reference data ────────────────────────────────────────────────────────
@@ -123,7 +129,7 @@ if _u_name:
             team_map[nm] = str(urow[_u_team]).strip()
 
 # ── Header ─────────────────────────────────────────────────────────────────────
-st.markdown("## 📋 Submit Weekly Squad")
+st.markdown("## 📋 Submit Weekly Team")
 
 col_owner, col_week = st.columns(2)
 with col_owner:
@@ -254,28 +260,44 @@ xi_count   = len(xi_list)
 # ── Squad picker ───────────────────────────────────────────────────────────────
 ok_color = "#16a34a" if xi_count == 11 else "#dc2626" if xi_count > 11 else "#d97706"
 st.markdown(
-    f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+    f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
     f'<span style="font-size:16px;font-weight:700">Select Playing XI</span>'
     f'<span style="background:{ok_color};color:white;padding:2px 12px;'
     f'border-radius:999px;font-size:13px;font-weight:700">{xi_count} / 11</span>'
     f'</div>',
     unsafe_allow_html=True,
 )
-st.caption("Tick to include in Playing XI. Greyed out once 11 are selected.")
 
 with st.container(border=True):
-    for p in squad_pool:
-        cb_key   = f"cb_{p}_{state_key}"
-        is_in_xi = st.session_state.get(cb_key, False)
-        c_cb, c_info = st.columns([1, 9])
-        with c_cb:
-            # Do NOT pass value= — let session_state drive the checkbox entirely
-            st.checkbox("", key=cb_key, label_visibility="collapsed")
-        alpha = "1" if is_in_xi or not xi_full else "0.4"
-        c_info.markdown(
-            f'<div style="opacity:{alpha}">{_player_html(p)}</div>',
-            unsafe_allow_html=True,
-        )
+    # ── Playing XI section ─────────────────────────────────────────────────
+    st.markdown(_section_label("PLAYING XI"), unsafe_allow_html=True)
+    if xi_list:
+        for p in xi_list:
+            c_cb, c_info = st.columns([1, 9])
+            with c_cb:
+                st.checkbox("", key=f"cb_{p}_{state_key}", label_visibility="collapsed")
+            c_info.markdown(_player_html(p), unsafe_allow_html=True)
+    else:
+        st.caption("No players selected yet — tick from the bench below.")
+
+    # ── Bench section ──────────────────────────────────────────────────────
+    st.markdown(
+        f'<hr style="margin:10px 0;opacity:0.15">'
+        + _section_label("BENCH"),
+        unsafe_allow_html=True,
+    )
+    if bench_list:
+        for p in bench_list:
+            c_cb, c_info = st.columns([1, 9])
+            with c_cb:
+                st.checkbox("", key=f"cb_{p}_{state_key}", label_visibility="collapsed")
+            alpha = "0.45" if xi_full else "1"
+            c_info.markdown(
+                f'<div style="opacity:{alpha}">{_player_html(p)}</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.caption("All 15 players are in the Playing XI.")
 
 # Derive XI from checkbox state after all widgets have rendered
 xi_list     = [p for p in squad_pool if st.session_state.get(f"cb_{p}_{state_key}", False)]
