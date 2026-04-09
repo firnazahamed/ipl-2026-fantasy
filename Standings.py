@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 from helpers import read_file
 
 st.set_page_config(layout="wide")
@@ -20,6 +21,13 @@ num_matches   = max([c for c in cumsum_df.columns if str(c).isdigit()])
 last_match_col = sum_df.columns[-1]
 last_match_pts = sum_df[last_match_col].astype(int)
 leader_points  = int(standings_df["Points"].max())
+
+# Compute previous rank (before last match)
+prev_points = standings_df.set_index("Owner")["Points"].astype(int) - last_match_pts
+prev_points = prev_points.fillna(standings_df.set_index("Owner")["Points"].astype(int))
+prev_rank = prev_points.rank(ascending=False, method="min").astype(int)
+current_rank = {int(rank): row["Owner"] for rank, row in standings_df.iterrows()}
+prev_rank_map = {owner: prev_rank[owner] for owner in prev_rank.index}
 
 # ── Hero header ───────────────────────────────────────────────────────────────
 st.markdown(
@@ -79,6 +87,13 @@ for rank, row in standings_df.iterrows():
         last_badge = f'<span style="color:#6b7280;font-size:12px;">↓{abs(last_pts)}</span>'
     else:
         last_badge = f'<span style="color:#6b7280;font-size:12px;">—</span>'
+    rank_delta = prev_rank_map.get(row["Owner"], rank) - rank
+    if rank_delta > 0:
+        rank_badge = f'<span style="color:#22c55e;font-size:11px;font-weight:600;">▲{rank_delta}</span>'
+    elif rank_delta < 0:
+        rank_badge = f'<span style="color:#ef4444;font-size:11px;font-weight:600;">▼{abs(rank_delta)}</span>'
+    else:
+        rank_badge = f'<span style="color:#6b7280;font-size:11px;">–</span>'
     col1.markdown(
         f"""
 <div style="
@@ -98,6 +113,7 @@ for rank, row in standings_df.iterrows():
         <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
             <span style="font-size:20px; font-weight:700; color:#f97316; min-width:44px; text-align:right;">{int(row['Points'])}</span>
             <span style="min-width:34px; text-align:left;">{last_badge}</span>
+            <span style="min-width:28px; text-align:left;">{rank_badge}</span>
         </div>
     </div>
     <div style="margin-top:5px; background:rgba(255,255,255,0.08); border-radius:3px; height:3px;">
@@ -109,4 +125,19 @@ for rank, row in standings_df.iterrows():
     )
 
 col2.subheader("Draft Standings Race")
-col2.line_chart(cumsum_df.T, height=500)
+chart_df = cumsum_df.T.reset_index().rename(columns={"index": "Match"})
+chart_df["Match"] = chart_df["Match"].astype(int)
+chart_long = chart_df.melt(id_vars="Match", var_name="Owner", value_name="Points")
+
+chart = (
+    alt.Chart(chart_long)
+    .mark_line()
+    .encode(
+        x=alt.X("Match:O", title="Match"),
+        y=alt.Y("Points:Q", title="Points"),
+        color=alt.Color("Owner:N"),
+        tooltip=["Match:O", "Owner:N", "Points:Q"],
+    )
+    .properties(height=500)
+)
+col2.altair_chart(chart, use_container_width=True)
