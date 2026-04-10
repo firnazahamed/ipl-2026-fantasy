@@ -7,3 +7,6 @@ altair>=5.0.0,<5.4.0
 openpyxl
 gspread
 matplotlib
+requests
+beautifulsoup4
+lxml
