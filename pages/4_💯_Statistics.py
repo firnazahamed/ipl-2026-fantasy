@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from helpers import read_file, read_gsheet
+from helpers import read_file, read_gsheet, find_col
 from settings import retentions_list, rtm_list, bucket_name, unsold_spreadsheet_url, price_list_spreadsheet_url
 
 st.set_page_config(layout="wide")
@@ -10,24 +10,32 @@ unsold_df = read_gsheet(unsold_spreadsheet_url, "Unsold_players")
 prices_df = read_gsheet(price_list_spreadsheet_url, "price_list")
 agg_points_df = read_file(bucket_name, "Outputs/agg_points_df.csv")
 
-df = prices_df.merge(agg_points_df, left_on="Player_name", right_on="Name_batting")
+_name_col  = find_col(prices_df, "Player_name", "Player name", "Name")
+_team_col  = find_col(prices_df, "Team", "IPL Team", "Franchise")
+_cat_col   = find_col(prices_df, "Category", "Role")
+_price_col = find_col(prices_df, "Price")
+
+df = prices_df.merge(agg_points_df, left_on=_name_col, right_on="Name_batting")
 df = df[
     [
-        "Player_name",
-        "Team",
-        "Category",
-        "Price",
+        _name_col,
+        _team_col,
+        _cat_col,
+        _price_col,
         "batting_points",
         "bowling_points",
         "fielding_points",
         "total_points",
     ]
 ].rename(columns={
-    "Player_name": "Player",
-    "batting_points": "Batting",
-    "bowling_points": "Bowling",
+    _name_col:  "Player",
+    _team_col:  "Team",
+    _cat_col:   "Category",
+    _price_col: "Price",
+    "batting_points":  "Batting",
+    "bowling_points":  "Bowling",
     "fielding_points": "Fielding",
-    "total_points": "Total",
+    "total_points":    "Total",
 })
 
 tab1, tab2, tab3 = st.tabs(["By Price", "By Category", "Retentions & RTM"])
