@@ -104,20 +104,33 @@ week_options  = sorted(weeks.keys(), key=lambda x: int(x.replace("Week", "")))
 role_map = {}
 team_map = {}
 
-if {"Player_name", "Category"}.issubset(price_list_df.columns):
+def _find_col(df, *candidates):
+    """Return the first column name in df that matches any candidate (case-insensitive, normalised)."""
+    norm = lambda s: s.strip().lower().replace("_", " ").replace("-", " ")
+    targets = {norm(c) for c in candidates}
+    for col in df.columns:
+        if norm(col) in targets:
+            return col
+    return None
+
+_pl_name_col = _find_col(price_list_df, "Player_name", "Player name", "Player Name", "Name")
+_pl_cat_col  = _find_col(price_list_df, "Category", "Role", "Cat")
+_pl_team_col = _find_col(price_list_df, "Team", "IPL Team", "Franchise")
+
+if _pl_name_col and _pl_cat_col:
     role_map.update(dict(zip(
-        price_list_df["Player_name"].str.strip(),
-        price_list_df["Category"].str.strip(),
+        price_list_df[_pl_name_col].str.strip(),
+        price_list_df[_pl_cat_col].str.strip(),
     )))
-if {"Player_name", "Team"}.issubset(price_list_df.columns):
+if _pl_name_col and _pl_team_col:
     team_map.update(dict(zip(
-        price_list_df["Player_name"].str.strip(),
-        price_list_df["Team"].str.strip(),
+        price_list_df[_pl_name_col].str.strip(),
+        price_list_df[_pl_team_col].str.strip(),
     )))
 
-_u_name = next((c for c in unsold_df.columns if c.strip().lower() == "player name"), None)
-_u_role = next((c for c in unsold_df.columns if c.strip().lower() in {"role", "category"}), None)
-_u_team = next((c for c in unsold_df.columns if c.strip().lower() == "team"), None)
+_u_name = _find_col(unsold_df, "Player name", "Player_name", "Name")
+_u_role = _find_col(unsold_df, "Role", "Category", "Cat")
+_u_team = _find_col(unsold_df, "Team", "IPL Team", "Franchise")
 if _u_name:
     for _, urow in unsold_df.iterrows():
         nm = str(urow[_u_name]).strip()
