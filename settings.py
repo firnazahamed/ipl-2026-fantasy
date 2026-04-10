@@ -54,7 +54,7 @@ retentions_list = [
     "Rishabh Pant",
     "Ayush Mhatre",
     "Tim Seifert",
-    "Vaibhav Suryavanshi",
+    "Vaibhav Sooryavanshi",
 ]
 
 rtm_list = [
