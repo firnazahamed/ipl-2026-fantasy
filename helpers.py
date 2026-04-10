@@ -173,6 +173,28 @@ def write_squad(spreadsheet_url, week_name, owner, squad_rows):
     ws.update(f"{bench_start}:{bench_end}", [[p] for p in bench])
 
 
+# ── Shared role helpers ────────────────────────────────────────────────────────
+BAT_ROLES  = {"BAT", "BATSMAN", "BATTER", "WK", "WICKETKEEPER", "WICKET-KEEPER",
+               "WICKET KEEPER", "AR", "ALL-ROUNDER", "ALL ROUNDER", "ALLROUNDER"}
+BOWL_ROLES = {"BOWL", "BOWLER", "AR", "ALL-ROUNDER", "ALL ROUNDER", "ALLROUNDER"}
+WK_ROLES   = {"WK", "WICKETKEEPER", "WICKET-KEEPER", "WICKET KEEPER"}
+
+def norm_role(s):        return str(s).strip().upper()
+def can_bat(cat):        return norm_role(cat) in BAT_ROLES
+def can_bowl(cat):       return norm_role(cat) in BOWL_ROLES
+def is_wk(cat):          return norm_role(cat) in WK_ROLES
+def is_overseas(nat):    return bool(nat) and norm_role(nat) not in ("INDIAN", "INDIA", "", "NAN")
+
+def find_col(df, *candidates):
+    """Return the first df column matching any candidate (case-insensitive, normalised)."""
+    norm = lambda s: s.strip().lower().replace("_", " ").replace("-", " ")
+    targets = {norm(c) for c in candidates}
+    for col in df.columns:
+        if norm(col) in targets:
+            return col
+    return None
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread

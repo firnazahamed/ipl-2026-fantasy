@@ -1,5 +1,9 @@
 import streamlit as st
-from helpers import read_gsheet, list_gsheet_tabs, write_squad
+from helpers import (
+    read_gsheet, list_gsheet_tabs, write_squad,
+    BAT_ROLES, BOWL_ROLES, WK_ROLES,
+    norm_role, can_bat, can_bowl, is_wk, find_col,
+)
 from settings import (
     squads_spreadsheet_url,
     trades_spreadsheet_url,
@@ -12,16 +16,7 @@ from settings import (
 
 st.set_page_config(layout="wide")
 
-# ── Role classification ────────────────────────────────────────────────────────
-_BAT_ROLES  = {"BAT", "BATSMAN", "BATTER", "WK", "WICKETKEEPER", "WICKET-KEEPER",
-               "WICKET KEEPER", "AR", "ALL-ROUNDER", "ALL ROUNDER", "ALLROUNDER"}
-_BOWL_ROLES = {"BOWL", "BOWLER", "AR", "ALL-ROUNDER", "ALL ROUNDER", "ALLROUNDER"}
-_WK_ROLES   = {"WK", "WICKETKEEPER", "WICKET-KEEPER", "WICKET KEEPER"}
-
-def _norm(cat):         return str(cat).strip().upper()
-def can_bat(cat):       return _norm(cat) in _BAT_ROLES
-def can_bowl(cat):      return _norm(cat) in _BOWL_ROLES
-def is_wk(cat):         return _norm(cat) in _WK_ROLES
+_norm = norm_role  # local alias used by badge helpers below
 
 # ── HTML badge helpers ─────────────────────────────────────────────────────────
 _ROLE_STYLE = {
@@ -104,18 +99,9 @@ week_options  = sorted(weeks.keys(), key=lambda x: int(x.replace("Week", "")))
 role_map = {}
 team_map = {}
 
-def _find_col(df, *candidates):
-    """Return the first column name in df that matches any candidate (case-insensitive, normalised)."""
-    norm = lambda s: s.strip().lower().replace("_", " ").replace("-", " ")
-    targets = {norm(c) for c in candidates}
-    for col in df.columns:
-        if norm(col) in targets:
-            return col
-    return None
-
-_pl_name_col = _find_col(price_list_df, "Player_name", "Player name", "Player Name", "Name")
-_pl_cat_col  = _find_col(price_list_df, "Category", "Role", "Cat")
-_pl_team_col = _find_col(price_list_df, "Team", "IPL Team", "Franchise")
+_pl_name_col = find_col(price_list_df, "Player_name", "Player name", "Player Name", "Name")
+_pl_cat_col  = find_col(price_list_df, "Category", "Role", "Cat")
+_pl_team_col = find_col(price_list_df, "Team", "IPL Team", "Franchise")
 
 if _pl_name_col and _pl_cat_col:
     role_map.update(dict(zip(
@@ -128,9 +114,9 @@ if _pl_name_col and _pl_team_col:
         price_list_df[_pl_team_col].str.strip(),
     )))
 
-_u_name = _find_col(unsold_df, "Player name", "Player_name", "Name")
-_u_role = _find_col(unsold_df, "Role", "Category", "Cat")
-_u_team = _find_col(unsold_df, "Team", "IPL Team", "Franchise")
+_u_name = find_col(unsold_df, "Player name", "Player_name", "Name")
+_u_role = find_col(unsold_df, "Role", "Category", "Cat")
+_u_team = find_col(unsold_df, "Team", "IPL Team", "Franchise")
 if _u_name:
     for _, urow in unsold_df.iterrows():
         nm = str(urow[_u_name]).strip()
