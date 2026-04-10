@@ -45,29 +45,31 @@ owner_team_dict = {
 
 retentions_list = [
     # TODO: Update with IPL 2026 retention players (currently using 2025 values)
-    "Abhishek Sharma",
+    "Ishan Kishan",
     "Phil Salt",
-    "KL Rahul",
-    "Shubman Gill",
-    "Yashasvi Jaiswal",
-    "Sai Sudharsan",
+    "Sanju Samson",
+    "Abhishek Sharma",
+    "Hardik Pandya",
+    "Mitchell Starc",
     "Rishabh Pant",
-    "Heinrich Klaasen",
-    "Sam Curran",
-    "Sunil Narine",
+    "Ayush Mhatre",
+    "Tim Seifert",
+    "Vaibhav Suryavanshi",
 ]
 
 rtm_list = [
     # TODO: Update with IPL 2026 RTM players (currently using 2025 values)
-    "Riyan Parag",
+    "KL Rahul",
     "Virat Kohli",
-    "Nitish Kumar Reddy",
-    "Nicholas Pooran",
-    "Glenn Maxwell",
+    "Shubman Gill",
+    "Shreyas Iyer",
+    "Sai Sudharsan",
+    "Yashasvi Jaiswal",
+    "Suryakumar Yadav",
     "Tilak Varma",
-    "Rachin Ravindra",
-    "Sanju Samson",
-    "Travis Head",
+    "Shivam Dube",
+    "Rajat Patidar",
+    "Ryan Rickelton",
 ]
 
 player_id_dict = {
