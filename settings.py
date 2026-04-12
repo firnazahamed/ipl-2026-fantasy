@@ -324,6 +324,7 @@ player_id_dict = {
  'Jaydev Unadkat': '390484',
  'Zeeshan Ansari': '942371',
  'Blessing Muzarabani': '827051',
+ 'George Linde': '481875',
  }
 
 service_account_credentials = "credentials/cricinfo-273202-a7420ddc1abd.json"

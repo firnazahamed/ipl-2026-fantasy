@@ -2,6 +2,7 @@ import streamlit as st
 from helpers import (
     read_gsheet, list_gsheet_tabs,
     write_trade, remove_player_from_unsold, add_player_to_unsold,
+    find_col,
 )
 from settings import (
     squads_spreadsheet_url, unsold_spreadsheet_url,
@@ -98,12 +99,21 @@ if submit:
             if from_unsold_pool:
                 remove_player_from_unsold(unsold_spreadsheet_url, player_in)
             if transfer_type == "Unsold Trade":
-                match = price_list_df[price_list_df["Player_name"] == player_out]
+                _pl_name_col  = find_col(price_list_df, "Player_name", "Player name", "Player Name", "Name")
+                _pl_team_col  = find_col(price_list_df, "Team", "IPL Team", "Franchise")
+                _pl_cat_col   = find_col(price_list_df, "Category", "Role", "Cat")
+                _pl_price_col = find_col(price_list_df, "Price", "Auction Price", "Cost")
+                match = (
+                    price_list_df[price_list_df[_pl_name_col] == player_out]
+                    if _pl_name_col else price_list_df.iloc[0:0]
+                )
                 if not match.empty:
                     row = match.iloc[0]
                     add_player_to_unsold(
                         unsold_spreadsheet_url, player_out,
-                        team=row["Team"], role=row["Category"], price=row["Price"],
+                        team=row[_pl_team_col] if _pl_team_col else None,
+                        role=row[_pl_cat_col]  if _pl_cat_col  else None,
+                        price=row[_pl_price_col] if _pl_price_col else None,
                     )
                 else:
                     add_player_to_unsold(unsold_spreadsheet_url, player_out)

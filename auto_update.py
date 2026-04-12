@@ -153,6 +153,37 @@ def run_get_standings() -> bool:
         return False
 
 
+# ── Bench sub suggestions (logged after each standings update) ────────────────
+
+def run_bench_subs() -> None:
+    """Print bench substitution suggestions for the current week to logs."""
+    try:
+        import pandas as pd
+        from get_bench_subs import suggest_bench_subs
+        from get_standings import retrieve_scorecards
+        from settings import weeks
+
+        scorecards = retrieve_scorecards()
+        weekly_player_points_df = pd.read_csv("./Outputs/weekly_player_points_df.csv")
+
+        # Determine the current week from the latest processed scorecard
+        processed_ids = {int(k.split("_")[0]) for k in scorecards}
+        current_week = None
+        for week, cfg in weeks.items():
+            match_ints = {int(m) for m in cfg.get("matches", [])}
+            if processed_ids & match_ints:
+                current_week = week  # keep updating — last matching week wins
+
+        if current_week is None:
+            log.info("Bench subs: no current week detected.")
+            return
+
+        log.info(f"Bench subs: computing for {current_week} …")
+        suggest_bench_subs(current_week, scorecards, weekly_player_points_df)
+    except Exception as e:
+        log.error(f"run_bench_subs failed — {e}", exc_info=True)
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -198,6 +229,7 @@ def main():
     if new_matches:
         log.info(f"New matches processed: {new_matches}")
         run_get_standings()
+        run_bench_subs()
     else:
         log.info("No new matches processed today.")
 

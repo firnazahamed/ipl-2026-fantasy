@@ -195,6 +195,72 @@ def find_col(df, *candidates):
     return None
 
 
+# ── Squad validity helpers ─────────────────────────────────────────────────────
+
+def role_counts(xi, role_map):
+    """Return (batters, bowlers, wks) counts for an XI list."""
+    cats = [role_map.get(p, '') for p in xi]
+    return (
+        sum(1 for c in cats if can_bat(c)),
+        sum(1 for c in cats if can_bowl(c)),
+        sum(1 for c in cats if is_wk(c)),
+    )
+
+
+def overseas_count(xi, nationality_map):
+    """Return number of overseas players in an XI list."""
+    return sum(1 for p in xi if is_overseas(nationality_map.get(p, '')))
+
+
+def is_valid_swap(current_xi, candidate_xi, role_map, nationality_map):
+    """Return True if swapping to candidate_xi respects role minimums and overseas cap.
+
+    Role minimums: 7 batters, 5 bowlers, 1 WK — enforced only down to current count
+    (handles squads already below threshold due to missing data).
+    Overseas cap: max 4.
+    """
+    curr = role_counts(current_xi, role_map)
+    new  = role_counts(candidate_xi, role_map)
+    for cur_cnt, new_cnt, threshold in zip(curr, new, (7, 5, 1)):
+        if new_cnt < min(cur_cnt, threshold):
+            return False
+    if overseas_count(candidate_xi, nationality_map) > 4:
+        return False
+    return True
+
+
+def build_role_nat_maps(price_df, unsold_df):
+    """Build role_map and nationality_map from pre-loaded price_list and unsold DataFrames.
+
+    price_list takes priority; unsold fills any gaps.
+    """
+    role_map = {}
+    nationality_map = {}
+
+    _p_name = find_col(price_df, 'Player name', 'Player_name', 'Name')
+    _p_role = find_col(price_df, 'Category', 'Role', 'Cat')
+    _p_nat  = find_col(price_df, 'Nationality')
+    if _p_name and _p_role:
+        role_map.update(dict(zip(price_df[_p_name].str.strip(), price_df[_p_role].str.strip())))
+    if _p_name and _p_nat:
+        nationality_map.update(dict(zip(price_df[_p_name].str.strip(), price_df[_p_nat].str.strip())))
+
+    _u_name = find_col(unsold_df, 'Player name', 'Player_name', 'Name')
+    _u_role = find_col(unsold_df, 'Role', 'Category', 'Cat')
+    _u_nat  = find_col(unsold_df, 'Nationality')
+    if _u_name:
+        for _, row in unsold_df.iterrows():
+            nm = str(row[_u_name]).strip()
+            if not nm:
+                continue
+            if _u_role and nm not in role_map:
+                role_map[nm] = str(row[_u_role]).strip()
+            if _u_nat and nm not in nationality_map:
+                nationality_map[nm] = str(row[_u_nat]).strip()
+
+    return role_map, nationality_map
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread

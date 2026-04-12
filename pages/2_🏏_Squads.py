@@ -1,7 +1,16 @@
 import streamlit as st
 import pandas as pd
-from helpers import read_gsheet, list_gsheet_tabs
-from settings import squads_spreadsheet_url, owner_team_dict
+from helpers import read_gsheet, list_gsheet_tabs, read_file, build_role_nat_maps
+from get_bench_subs import compute_subs_core
+from settings import (
+    squads_spreadsheet_url,
+    owner_team_dict,
+    bucket_name,
+    weeks as WEEKS,
+    player_id_dict,
+    price_list_spreadsheet_url,
+    unsold_spreadsheet_url,
+)
 
 st.set_page_config(layout="wide")
 st.title("Squads")
@@ -116,3 +125,109 @@ with tab_individual:
         f"### {owner_team_dict.get(st.session_state.squad_owner, st.session_state.squad_owner)}",
     )
     st.html(squad_card(st.session_state.squad_owner))
+
+
+# ── Bench Substitution Suggestions ───────────────────────────────────────────
+
+def _load_role_nat_maps():
+    """Load price_list and unsold from GSheets and return role/nationality maps."""
+    try:
+        price_df  = read_gsheet(price_list_spreadsheet_url, 'price_list')
+        unsold_df = read_gsheet(unsold_spreadsheet_url, 'Unsold_players')
+        return build_role_nat_maps(price_df, unsold_df)
+    except Exception:
+        return {}, {}
+
+
+def compute_bench_subs(week, raw_squad_df, player_weekly_pts_df):
+    """Return bench sub suggestions for all owners for *week*.
+
+    Loads scorecards from GCS and role/nationality maps from GSheets,
+    then delegates to compute_subs_core.
+
+    Returns [] if no games have been scored this week yet.
+    """
+    week_col = f'{week}_points'
+    if week_col not in player_weekly_pts_df.columns:
+        return []
+
+    players_who_played = set()
+    for match_id in WEEKS.get(week, {}).get('matches', []):
+        try:
+            sc = read_file(bucket_name, f"Scorecards/{match_id}_scorecard.csv")
+            players_who_played.update(sc['Player_id'].dropna().astype(int).tolist())
+        except Exception:
+            pass
+
+    if not players_who_played:
+        return []
+
+    player_pts = (
+        player_weekly_pts_df
+        .set_index('Player')[week_col]
+        .fillna(0)
+        .apply(float)
+        .to_dict()
+    )
+
+    role_map, nationality_map = _load_role_nat_maps()
+    return compute_subs_core(raw_squad_df, players_who_played, role_map, nationality_map, player_pts)
+
+
+st.divider()
+st.subheader(f"Bench Substitution Suggestions — {option}")
+st.caption("Based on scorecards loaded so far this week. Points shown are bench rate (½ × raw).")
+
+try:
+    player_weekly_pts_df = read_file(bucket_name, "Outputs/weekly_player_points_df.csv")
+    subs_data = compute_bench_subs(option, squad_df, player_weekly_pts_df)
+
+    if not subs_data:
+        st.info("No bench substitutions available yet — either no games have been scored this week, or no swaps are needed.")
+    else:
+        COLS = 3
+        for row_start in range(0, len(subs_data), COLS):
+            cols = st.columns(COLS)
+            for j, entry in enumerate(subs_data[row_start:row_start + COLS]):
+                with cols[j]:
+                    total_half_pts = sum(pts / 2 for _, _, pts in entry['subs'])
+                    st.markdown(
+                        f"**{entry['owner']}** &nbsp;·&nbsp; "
+                        f"<span style='color:rgba(128,128,128,0.8);font-size:13px;'>{entry['team']}</span>",
+                        unsafe_allow_html=True,
+                    )
+                    rows_html = ""
+                    for out_p, in_p, pts in entry['subs']:
+                        half = pts / 2
+                        rows_html += (
+                            f'<div style="display:flex;align-items:center;gap:6px;'
+                            f'padding:6px 0;border-bottom:1px solid rgba(128,128,128,0.15);">'
+                            f'<span style="color:#e05c5c;font-size:12px;font-weight:600;'
+                            f'min-width:30px;">OUT</span>'
+                            f'<span style="flex:1;font-size:13px;">{out_p}</span>'
+                            f'</div>'
+                            f'<div style="display:flex;align-items:center;gap:6px;'
+                            f'padding:6px 0;border-bottom:1px solid rgba(128,128,128,0.2);">'
+                            f'<span style="color:#4caf87;font-size:12px;font-weight:600;'
+                            f'min-width:30px;">IN</span>'
+                            f'<span style="flex:1;font-size:13px;">{in_p}</span>'
+                            f'<span style="font-size:12px;font-weight:700;color:#4caf87;'
+                            f'white-space:nowrap;">+{half:.0f} pts</span>'
+                            f'</div>'
+                        )
+                    rows_html += (
+                        f'<div style="margin-top:8px;font-size:11px;'
+                        f'color:rgba(128,128,128,0.7);">'
+                        f'XI check · bat {entry["bat"]} · bowl {entry["bowl"]} · '
+                        f'WK {entry["wk"]} · overseas {entry["overseas"]}/4'
+                        f'</div>'
+                        f'<div style="margin-top:4px;font-size:12px;font-weight:600;">'
+                        f'Total on offer: +{total_half_pts:.0f} pts</div>'
+                    )
+                    st.html(
+                        f'<div style="border:1px solid rgba(128,128,128,0.25);'
+                        f'border-radius:8px;padding:12px 14px;">{rows_html}</div>'
+                    )
+
+except Exception as e:
+    st.warning(f"Could not load bench sub data: {e}")
