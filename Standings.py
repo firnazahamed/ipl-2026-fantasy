@@ -54,7 +54,7 @@ st.markdown(
 st.divider()
 
 # ── Main layout ───────────────────────────────────────────────────────────────
-col1, col2 = st.columns([2, 4])
+col1, col2 = st.columns([7, 10])
 
 col1.markdown(
     f"""
