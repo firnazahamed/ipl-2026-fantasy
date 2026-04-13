@@ -17,16 +17,16 @@ team_fixtures = {
 }
 
 weeks = {
-    "Week1": {"matches": [str(1527673 + i) for i in range(1, 8)]},      # Matches 1-7, Mar 28 - Apr 3
-    "Week2": {"matches": [str(1527673 + i) for i in range(8, 17)]},     # Matches 8-16, Apr 4 - Apr 10
-    "Week3": {"matches": [str(1527673 + i) for i in range(17, 26)]},    # Matches 17-25, Apr 11 - Apr 17
-    "Week4": {"matches": [str(1527673 + i) for i in range(26, 35)]},    # Matches 26-34, Apr 18 - Apr 24
-    "Week5": {"matches": [str(1527673 + i) for i in range(35, 44)]},    # Matches 35-43, Apr 25 - May 1
-    "Week6": {"matches": [str(1527673 + i) for i in range(44, 52)]},    # Matches 44-51, May 2 - May 8
-    "Week7": {"matches": [str(1527673 + i) for i in range(52, 59)]},    # Matches 52-58, May 9 - May 15
-    "Week8": {"matches": [str(1527673 + i) for i in range(59, 68)]},    # Matches 59-67, May 16 - May 22
-    "Week9": {"matches": [str(1527673 + i) for i in range(68, 71)]},    # Matches 68-70, May 23-24 (+ playoffs TBD)
-    "Week10": {"matches": []},                                           # Playoffs TBD (Final May 31)
+    "Week1":  {"matches": [str(1527673 + i) for i in range(1, 8)]},                                                              # Matches 1-7,   Mar 28 - Apr 3
+    "Week2":  {"matches": [str(1527673 + i) for i in range(8, 17)]},                                                             # Matches 8-16,  Apr 4  - Apr 10
+    "Week3":  {"matches": [str(1527673 + i) for i in range(17, 21)] + [str(1529243 + i) for i in range(21, 26)]},                # Matches 17-25, Apr 11 - Apr 17
+    "Week4":  {"matches": [str(1529243 + i) for i in range(26, 35)]},                                                            # Matches 26-34, Apr 18 - Apr 24
+    "Week5":  {"matches": [str(1529243 + i) for i in range(35, 44)]},                                                            # Matches 35-43, Apr 25 - May 1
+    "Week6":  {"matches": [str(1529243 + i) for i in range(44, 52)]},                                                            # Matches 44-51, May 2  - May 8
+    "Week7":  {"matches": [str(1529243 + i) for i in range(52, 59)]},                                                            # Matches 52-58, May 9  - May 15
+    "Week8":  {"matches": [str(1529243 + i) for i in range(59, 68)]},                                                            # Matches 59-67, May 16 - May 22
+    "Week9":  {"matches": [str(1529243 + i) for i in range(68, 71)]},                                                            # Matches 68-70, May 23-24 (+ playoffs TBD)
+    "Week10": {"matches": []},                                                                                                    # Playoffs TBD (Final May 31)
 }
 
 owner_team_dict = {
