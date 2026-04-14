@@ -15,4 +15,4 @@ for tab, owner in zip(tabs, owners):
         sno_col = find_col(trade_df, "S.no", "S no", "S_no", "Sno", "Serial")
         if sno_col:
             trade_df = trade_df.set_index(sno_col)
-        st.dataframe(trade_df, use_container_width=True)
+        st.dataframe(trade_df, use_container_width=True, height=(len(trade_df) + 1) * 35 + 3)

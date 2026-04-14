@@ -66,8 +66,8 @@ with tab3:
     with col1:
         st.subheader("Retentions")
         retention_df = df[df["Player"].isin(retentions_list)].sort_values("Total", ascending=False)
-        st.dataframe(retention_df, use_container_width=True, hide_index=True)
+        st.dataframe(retention_df, use_container_width=True, hide_index=True, height=(len(retention_df) + 1) * 35 + 3)
     with col2:
         st.subheader("RTM")
         rtm_df = df[df["Player"].isin(rtm_list)].sort_values("Total", ascending=False)
-        st.dataframe(rtm_df, use_container_width=True, hide_index=True)
+        st.dataframe(rtm_df, use_container_width=True, hide_index=True, height=(len(rtm_df) + 1) * 35 + 3)

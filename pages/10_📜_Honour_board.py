@@ -104,6 +104,7 @@ st.dataframe(
         .applymap(_silver, subset=["🥈"])
         .applymap(_bronze, subset=["🥉"]),
     use_container_width=True,
+    height=(len(tally) + 1) * 35 + 3,
 )
 
 # ── Past seasons detail ───────────────────────────────────────────────────────
@@ -129,7 +130,7 @@ for year in sorted(seasons, reverse=True):
     col1, col2 = st.columns([2, 4])
 
     standings_df = read_file(bucket_name, f"{year}_standings.csv").set_index("Standings")
-    col1.dataframe(standings_df, use_container_width=True)
+    col1.dataframe(standings_df, use_container_width=True, height=(len(standings_df) + 1) * 35 + 3)
 
     cumsum_df = read_file(bucket_name, f"{year}_cumsum.csv").set_index("Owner")
     cumsum_df = cumsum_df.rename(columns={x: int(x) for x in cumsum_df.columns})

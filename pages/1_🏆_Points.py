@@ -19,31 +19,31 @@ tab1, tab2, tab3, tab4 = st.tabs(["📋 Draft Points", "📊 Match Summary", "�
 with tab1:
     st.subheader("Match-wise player points")
     st.caption("Includes captaincy (1.5×) and bench (0.5×) multipliers")
-    st.dataframe(score_df, use_container_width=True)
+    st.dataframe(score_df, use_container_width=True, height=(len(score_df) + 1) * 35 + 3)
 
 with tab2:
     st.subheader("Match aggregate points")
     st.caption("Total points per owner per match")
-    st.dataframe(sum_df, use_container_width=True)
+    st.dataframe(sum_df, use_container_width=True, height=(len(sum_df) + 1) * 35 + 3)
 
     st.divider()
     st.subheader("Weekly points")
-    st.dataframe(weekly_df, use_container_width=True)
+    st.dataframe(weekly_df, use_container_width=True, height=(len(weekly_df) + 1) * 35 + 3)
 
 with tab3:
     st.subheader("Cumulative points")
-    st.dataframe(cumsum_df, use_container_width=True)
+    st.dataframe(cumsum_df, use_container_width=True, height=(len(cumsum_df) + 1) * 35 + 3)
 
     st.divider()
     st.subheader("Cumulative ranking")
     st.caption("Rank 1 = leading")
-    st.dataframe(cumrank_df, use_container_width=True)
+    st.dataframe(cumrank_df, use_container_width=True, height=(len(cumrank_df) + 1) * 35 + 3)
 
 with tab4:
     st.subheader("Match-wise points — all players")
     st.caption("No captaincy multipliers or bench exclusions")
-    st.dataframe(points_df, use_container_width=True)
+    st.dataframe(points_df, use_container_width=True, height=(len(points_df) + 1) * 35 + 3)
 
     st.divider()
     st.subheader("Weekly points — all players")
-    st.dataframe(player_weekly_df, use_container_width=True)
+    st.dataframe(player_weekly_df, use_container_width=True, height=(len(player_weekly_df) + 1) * 35 + 3)

@@ -102,7 +102,7 @@ with tab_compare:
         return pd.DataFrame(rows).set_index("")
 
     st.caption("Playing XI")
-    st.dataframe(section_df(xi_df, XI_SLOTS), use_container_width=True)
+    st.dataframe(section_df(xi_df, XI_SLOTS), use_container_width=True, height=(len(XI_SLOTS) + 1) * 35 + 3)
 
     st.caption("Bench")
     st.dataframe(section_df(bench_df, BENCH_SLOTS), use_container_width=True)

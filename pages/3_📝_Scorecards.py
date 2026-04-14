@@ -93,6 +93,7 @@ styled = (
 st.dataframe(
     styled,
     use_container_width=True,
+    height=(len(display_df) + 1) * 35 + 3,
     column_config={
         "Owner": st.column_config.TextColumn("Owner", pinned=True),
         "Player": st.column_config.TextColumn("Player", pinned=True),
