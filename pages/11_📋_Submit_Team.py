@@ -321,7 +321,7 @@ st.divider()
 batters    = sum(1 for p in selected_xi if can_bat(role_map.get(p, "")))
 bowlers    = sum(1 for p in selected_xi if can_bowl(role_map.get(p, "")))
 wk_count   = sum(1 for p in selected_xi if is_wk(role_map.get(p, "")))
-combo_valid = batters >= 7 and bowlers >= 5 and wk_count >= 1
+combo_valid = batters >= 6 and bowlers >= 5 and wk_count >= 1
 
 def _check_html(label, value, target):
     ok   = value >= target
@@ -340,7 +340,7 @@ def _check_html(label, value, target):
 
 st.markdown(
     f'<div style="display:flex;gap:10px;flex-wrap:wrap">'
-    f'<div style="flex:1;min-width:110px">{_check_html("Can Bat",        batters,  7)}</div>'
+    f'<div style="flex:1;min-width:110px">{_check_html("Can Bat",        batters,  6)}</div>'
     f'<div style="flex:1;min-width:110px">{_check_html("Can Bowl",       bowlers,  5)}</div>'
     f'<div style="flex:1;min-width:110px">{_check_html("Wicket-Keepers", wk_count, 1)}</div>'
     f'</div>',
@@ -365,7 +365,7 @@ if not captain:
 if not vice_captain:
     errors.append("Vice-Captain not selected.")
 if selected_xi and not combo_valid:
-    if batters  < 7:  errors.append(f"Need at least 7 who can bat ({batters} now).")
+    if batters  < 6:  errors.append(f"Need at least 6 who can bat ({batters} now).")
     if bowlers  < 5:  errors.append(f"Need at least 5 who can bowl ({bowlers} now).")
     if wk_count < 1:  errors.append("Need at least 1 wicket-keeper in the XI.")
 for e in errors:

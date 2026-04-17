@@ -221,7 +221,7 @@ def is_valid_swap(current_xi, candidate_xi, role_map, nationality_map):
     """
     curr = role_counts(current_xi, role_map)
     new  = role_counts(candidate_xi, role_map)
-    for cur_cnt, new_cnt, threshold in zip(curr, new, (7, 5, 1)):
+    for cur_cnt, new_cnt, threshold in zip(curr, new, (6, 5, 1)):
         if new_cnt < min(cur_cnt, threshold):
             return False
     if overseas_count(candidate_xi, nationality_map) > 4:
