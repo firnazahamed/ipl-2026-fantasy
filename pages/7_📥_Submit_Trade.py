@@ -23,7 +23,20 @@ player_name_col = next(c for c in unsold_df.columns if c.strip().lower() == "pla
 unsold_names = sorted(unsold_df[player_name_col].dropna().tolist())
 week_options = sorted(weeks.keys(), key=lambda x: int(x.replace("Week", "")))
 
-st.caption(f"Squad based on {latest_week}")
+# Cache all squad sheets so we can fall back per owner
+_all_squad_dfs = {w: (squad_df if w == latest_week else read_gsheet(squads_spreadsheet_url, w))
+                  for w in squad_tabs}
+
+def _owner_squad(owner):
+    """Return (week_label, squad_list) from the most recent week the owner has a squad."""
+    for w in reversed(squad_tabs):
+        df = _all_squad_dfs[w]
+        if owner in df.columns:
+            players = [p for p in df[owner].tolist() if p and str(p).strip() and str(p).strip() != "nan"]
+            if players:
+                return w, sorted(players)
+    return latest_week, []
+
 st.divider()
 
 # ── Form ──────────────────────────────────────────────────────────────────────
@@ -35,7 +48,8 @@ with col_left:
     owner = st.selectbox("Owner", sorted(owner_team_dict.keys()),
                          format_func=lambda o: f"{o} — {owner_team_dict[o]}")
 
-    owner_squad = sorted([p for p in squad_df[owner].tolist() if p and p.strip()])
+    squad_week, owner_squad = _owner_squad(owner)
+    st.caption(f"Squad based on {squad_week}")
     player_out  = st.selectbox("Player Out", owner_squad)
 
     transfer_type = st.radio("Transfer Type", ["Unsold Trade", "Injury Replacement"],
