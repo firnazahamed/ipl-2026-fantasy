@@ -40,7 +40,7 @@ st.divider()
 if batted:
     bat_base      = int(runs)
     bat_pace      = int(runs - balls)
-    bat_milestone = {0: 0, 1: 10, 2: 20, 3: 30}.get(min(int(np.floor(runs / 25)), 3), 50)
+    bat_milestone = {0: 0, 1: 10, 2: 20, 3: 30}.get(int(np.floor(runs / 25)), 50)
     duck          = batted and runs == 0 and balls > 0
     bat_impact    = int(fours + 2 * sixes + (-5 if duck else 0))
     bat_total     = bat_base + bat_pace + bat_milestone + bat_impact
