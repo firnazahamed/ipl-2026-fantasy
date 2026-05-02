@@ -332,3 +332,37 @@ squads_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1LppmTsHXmr97cx
 unsold_spreadsheet_url = "https://docs.google.com/spreadsheets/d/11W5lg-qqZdIO97iCdDDF6rlcyXStQDumMVYaNDDjl_k/"
 trades_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1LRGRU9ZYUA6XMQKR0maaaaXbv88RZy6Wp8Z2YpQVlQ8/"
 price_list_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1Yj6Bx5RVyRhAvHSa55VDTghhrzc0RHx5nnpm0kQ2vfI/"
+
+# Owner colour palette — shared across pages
+OWNER_PALETTE = {
+    "Mabbu":  "#fecaca",
+    "Siddhu": "#fed7aa",
+    "Bhar":   "#fef08a",
+    "Srini":  "#bbf7d0",
+    "Saju":   "#99f6e4",
+    "Abhi":   "#bae6fd",
+    "Jilla":  "#bfdbfe",
+    "Ash":    "#ddd6fe",
+    "Firi":   "#f5d0fe",
+    "Shar":   "#fbcfe8",
+    "Vaithy": "#d9f99d",
+}
+
+# Historical squad GSheets — one per year, each with weekly tabs (same structure as 2026)
+hist_squads_by_year = {
+    2019: "https://docs.google.com/spreadsheets/d/1d5ncP9PD1DhSg7Qmg3tgMBcbyLYLZ0_niiBjVxx4tU0/",
+    2020: "https://docs.google.com/spreadsheets/d/1FPJr7Abr02P3ZBU4aAG9GNVoMPn04YLzi6ltg2phrcc/",
+    2021: "https://docs.google.com/spreadsheets/d/1PhNDFueutzj7SNVJpbpGTJAgQL1iztdTYU1JbKNWLmQ/",
+    2022: "https://docs.google.com/spreadsheets/d/1OvwBDgzw7PwNpO9rFlQR3iV4bpGdpY_1WiwP2NvK31o/",
+    2023: "https://docs.google.com/spreadsheets/d/1RLMHNKf9U8RgPbkOvFxVWHY9-7T_EVA8ByXMfPIVi6M/",
+    2024: "https://docs.google.com/spreadsheets/d/1KWLM_0V4QMZZrM62wRLAdY_5TkCg37nt3cFR8Mx67zU/",
+    2025: "https://docs.google.com/spreadsheets/d/10_pC20ejAGskLCxZQzMBmKGJR0V_Uo7oUQB8g5wkM6s/",
+    2026: squads_spreadsheet_url,
+}
+
+# 7-year historical fantasy points GSheet (rows = players, columns = seasons)
+hist_points_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1sJnoa6wxt7kn7TtzyfFrbWpBh3U3iUblqPX3JkqcOb8/"
+
+# Pre-built historical ownership GSheet (rows = players, columns = Player + years 2022-2025)
+# Populate by running the "Build historical ownership GSheet" cell in run.ipynb
+hist_ownership_spreadsheet_url = "https://docs.google.com/spreadsheets/d/1_euk8aJLKVaRp4OFe0FDaydgxMCu-gpZnSfTE0Hr6no/"

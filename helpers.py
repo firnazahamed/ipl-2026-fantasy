@@ -261,6 +261,165 @@ def build_role_nat_maps(price_df, unsold_df):
     return role_map, nationality_map
 
 
+@st.cache_data(ttl=3600)
+def load_hist_ownership_df() -> pd.DataFrame:
+    """Read the pre-built historical ownership GSheet (2022-2025).
+
+    Expected format: rows=players, columns=['Player', '2022', '2023', '2024', '2025'].
+    Values in year columns are comma-separated owner names (or empty if unowned).
+    Populated once via the run.ipynb 'Build historical ownership GSheet' cell.
+    """
+    from settings import hist_ownership_spreadsheet_url
+    try:
+        tabs = list_gsheet_tabs(hist_ownership_spreadsheet_url)
+        if tabs:
+            return read_gsheet(hist_ownership_spreadsheet_url, tabs[0])
+    except Exception:
+        pass
+    return pd.DataFrame()
+
+
+@st.cache_data(ttl=3600)
+def build_current_year_ownership() -> tuple:
+    """Scan only the current year squad GSheets → ({player_lower: [owners]}, current_year).
+
+    Only reads ~10 weekly tabs for one year — much faster than scanning all years.
+    """
+    import time
+    from settings import hist_squads_by_year, owner_team_dict
+
+    current_year = max(hist_squads_by_year.keys())
+    url = hist_squads_by_year[current_year]
+
+    _known_owners = set(owner_team_dict.keys())
+    _STATS_HEADERS = {
+        "name", "player", "player name", "player_name", "name_batting",
+        "name_bowling", "team", "role", "category", "cat", "runs", "wickets",
+        "matches", "points", "total", "total_points", "batting_points",
+        "bowling_points", "fielding_points", "price", "nationality", "s.no",
+        "sno", "sr", "economy", "econ", "balls", "overs", "catches",
+        "stumpings", "owner", "unsold",
+    }
+
+    def _is_owner_col(col_s):
+        if col_s in _known_owners:
+            return True
+        if "_" in col_s:
+            return False
+        try:
+            int(col_s)
+            return False
+        except ValueError:
+            pass
+        return col_s.lower() not in _STATS_HEADERS
+
+    result = {}  # player_lower → set(owners)
+    try:
+        tabs = list_gsheet_tabs(url)
+        for tab in tabs:
+            df = None
+            for attempt in range(2):
+                try:
+                    df = read_gsheet(url, tab)
+                    break
+                except Exception:
+                    if attempt == 0:
+                        time.sleep(2)
+            if df is None or df.empty:
+                continue
+            for col in df.columns:
+                col_s = str(col).strip()
+                if not col_s or not _is_owner_col(col_s):
+                    continue
+                for val in df[col].astype(str):
+                    player = val.strip()
+                    if not player or player.lower() in ("nan", "", "0"):
+                        continue
+                    p_lower = player.lower()
+                    if p_lower not in result:
+                        result[p_lower] = set()
+                    result[p_lower].add(col_s)
+    except Exception:
+        pass
+
+    return {k: list(v) for k, v in result.items()}, current_year
+
+
+@st.cache_data(ttl=3600)
+def get_ownership_history(player_name: str) -> dict:
+    """Return {year: [owner, ...]} for every year the player appeared in any squad tab.
+
+    Reads pre-built historical GSheet (2022-2025) in one API call, then live-scans
+    only the current year (~10 tab reads). Much faster than scanning all years.
+    """
+    result = {}
+    name_lower  = player_name.strip().lower()
+    name_tokens = frozenset(name_lower.split())
+
+    # ── 1. Historical years from pre-built GSheet ─────────────────────────────
+    hist_df = load_hist_ownership_df()
+    if not hist_df.empty:
+        player_col = find_col(hist_df, 'Player')
+        if player_col:
+            year_cols = [c for c in hist_df.columns if c != player_col]
+
+            # Exact match
+            mask = hist_df[player_col].str.strip().str.lower() == name_lower
+            match_row = hist_df[mask]
+
+            # Token-based fallback: handles name variants
+            if match_row.empty:
+                for idx, row in hist_df.iterrows():
+                    cell_tokens = frozenset(str(row[player_col]).strip().lower().split())
+                    if name_tokens and name_tokens.issubset(cell_tokens):
+                        match_row = hist_df.iloc[[idx]]
+                        break
+
+            if not match_row.empty:
+                row = match_row.iloc[0]
+                for yc in year_cols:
+                    try:
+                        year_int = int(yc)
+                    except ValueError:
+                        continue
+                    val = str(row[yc]).strip()
+                    if val and val.lower() not in ("", "nan"):
+                        owners = [o.strip() for o in val.split(",") if o.strip()]
+                        if owners:
+                            result[year_int] = owners
+
+    # ── 2. Current year (live scan, cached separately) ────────────────────────
+    current_index, current_year = build_current_year_ownership()
+    current_owners = current_index.get(name_lower)
+    if not current_owners:
+        for p_lower, owners in current_index.items():
+            cell_tokens = frozenset(p_lower.split())
+            if name_tokens and name_tokens.issubset(cell_tokens):
+                current_owners = owners
+                break
+    if current_owners:
+        result[current_year] = list(current_owners)
+
+    return result
+
+
+@st.cache_data(ttl=600)
+def load_hist_points_df() -> pd.DataFrame:
+    """Load the 7-year historical fantasy points GSheet (first tab).
+
+    Expected format: rows = players, columns include a player-name column and
+    year columns (e.g. 2019, 2020, ...).
+    """
+    from settings import hist_points_spreadsheet_url
+    try:
+        tabs = list_gsheet_tabs(hist_points_spreadsheet_url)
+        if tabs:
+            return read_gsheet(hist_points_spreadsheet_url, tabs[0])
+    except Exception:
+        pass
+    return pd.DataFrame()
+
+
 def download_gsheet_as_csv(spreadsheet_url, sheet_name, download_folder="Squads"):
 
     import gspread
