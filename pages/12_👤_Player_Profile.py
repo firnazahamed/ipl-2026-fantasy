@@ -237,15 +237,15 @@ nat_icon = "🇮🇳" if player_nat.lower() in ("indian", "india") else "🌍"
 
 st.html(f"""
 <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%);
-            border-radius:16px;padding:28px 32px;display:flex;align-items:center;
-            gap:28px;border:1px solid rgba(255,255,255,0.1);margin-bottom:4px;">
+            border-radius:16px;padding:20px 24px;display:flex;align-items:center;
+            flex-wrap:wrap;gap:20px;border:1px solid rgba(255,255,255,0.1);margin-bottom:4px;">
   <img src="{photo_src}"
-       style="width:110px;height:110px;border-radius:50%;object-fit:cover;
+       style="width:90px;height:90px;border-radius:50%;object-fit:cover;
               border:3px solid rgba(255,255,255,0.2);background:#444;flex-shrink:0;">
-  <div style="flex:1;min-width:0;">
-    <div style="font-size:30px;font-weight:800;color:#fff;
+  <div style="flex:1;min-width:180px;">
+    <div style="font-size:26px;font-weight:800;color:#fff;
                 letter-spacing:-0.5px;line-height:1.1;">{selected}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
       {_badge(short_role(player_role), role_bg)}
       {_badge(player_team, "rgba(255,255,255,0.15)")}
       {_badge(f"{nat_icon} {player_nat}", "rgba(255,255,255,0.08)", "rgba(255,255,255,0.8)")}
@@ -452,19 +452,20 @@ else:
             <div style="width:{pct_bowl:.1f}%;background:#22c55e;"></div>
             <div style="width:{pct_fld:.1f}%;background:#f59e0b;"></div>
           </div>
-          <table style="margin-top:10px;font-size:13px;border-collapse:collapse;">
-            <tr>
-              <td style="padding-right:6px;"><div style="width:12px;height:12px;border-radius:3px;background:#3b82f6;"></div></td>
-              <td style="padding-right:20px;">Batting</td>
-              <td style="font-weight:700;padding-right:20px;">{pct_bat:.0f}%</td>
-              <td style="padding-right:6px;"><div style="width:12px;height:12px;border-radius:3px;background:#22c55e;"></div></td>
-              <td style="padding-right:20px;">Bowling</td>
-              <td style="font-weight:700;padding-right:20px;">{pct_bowl:.0f}%</td>
-              <td style="padding-right:6px;"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;"></div></td>
-              <td style="padding-right:20px;">Fielding</td>
-              <td style="font-weight:700;">{pct_fld:.0f}%</td>
-            </tr>
-          </table>
+          <div style="display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:10px;font-size:13px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:12px;height:12px;border-radius:3px;background:#3b82f6;flex-shrink:0;"></div>
+              <span>Batting</span><span style="font-weight:700;margin-left:4px;">{pct_bat:.0f}%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:12px;height:12px;border-radius:3px;background:#22c55e;flex-shrink:0;"></div>
+              <span>Bowling</span><span style="font-weight:700;margin-left:4px;">{pct_bowl:.0f}%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0;"></div>
+              <span>Fielding</span><span style="font-weight:700;margin-left:4px;">{pct_fld:.0f}%</span>
+            </div>
+          </div>
         </div>
         """)
 
@@ -576,13 +577,14 @@ else:
         st.html(f"""
         <div style="background:linear-gradient(90deg,#3730a3,#4338ca);
                     border-radius:8px;padding:14px 20px;margin-bottom:16px;
-                    display:flex;align-items:center;gap:14px;">
+                    display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;">
           <span style="font-size:24px;flex-shrink:0;">⭐</span>
-          <div>
+          <div style="min-width:0;">
             <div style="font-size:11px;color:rgba(255,255,255,0.65);
                         text-transform:uppercase;letter-spacing:.8px;
                         font-weight:700;">Best Game</div>
-            <div style="font-size:17px;font-weight:800;color:#fff;margin-top:3px;">
+            <div style="font-size:16px;font-weight:800;color:#fff;margin-top:3px;
+                        word-break:break-word;">
               {best['Total Pts']:.0f} pts — Match #{best['#']} ({best['Match']})
             </div>
             <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:3px;">
