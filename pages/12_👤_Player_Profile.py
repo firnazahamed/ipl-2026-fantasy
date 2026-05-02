@@ -13,6 +13,7 @@ from helpers import (
     get_client,
     get_ownership_history,
     load_hist_points_df,
+    load_hist_ownership_df,
 )
 from settings import (
     bucket_name,
@@ -159,6 +160,22 @@ _agg_name  = find_col(agg_df,   "Name_batting", "Name", "Player")
 _agg_tot   = find_col(agg_df,   "total_points", "Total_points", "Total")
 
 
+# ── Build full player list (current season + all historical owners) ────────────
+
+def _all_players():
+    names = set(player_id_dict.keys())
+    try:
+        hist_own = load_hist_ownership_df()
+        p_col = find_col(hist_own, "Player")
+        if p_col:
+            names.update(hist_own[p_col].astype(str).str.strip().tolist())
+    except Exception:
+        pass
+    names.discard("")
+    names.discard("nan")
+    return sorted(names)
+
+
 # ── Page title + selector ─────────────────────────────────────────────────────
 
 st.title("Player Profile")
@@ -167,7 +184,7 @@ sel_col, _ = st.columns([3, 5])
 with sel_col:
     selected = st.selectbox(
         "Select player",
-        sorted(player_id_dict.keys()),
+        _all_players(),
         index=None,
         placeholder="Type to search...",
     )
