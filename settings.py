@@ -13,7 +13,7 @@ team_fixtures = {
     "PBKS": [ 2,  1,  2,  1,  2,  2,  2,  2],
     "RCB":  [ 1,  2,  2,  2,  2,  1,  2,  2],
     "RR":   [ 1,  3,  1,  2,  3,  0,  1,  3],
-    "SRH":  [ 2,  1,  2,  2,  2,  2,  2,  2],
+    "SRH":  [ 2,  1,  2,  2,  2,  2,  1,  2],
 }
 
 weeks = {
@@ -23,10 +23,9 @@ weeks = {
     "Week4":  {"matches": [str(1529243 + i) for i in range(26, 35)]},                                                            # Matches 26-34, Apr 18 - Apr 24
     "Week5":  {"matches": [str(1529243 + i) for i in range(35, 44)]},                                                            # Matches 35-43, Apr 25 - May 1
     "Week6":  {"matches": [str(1529243 + i) for i in range(44, 52)]},                                                            # Matches 44-51, May 2  - May 8
-    "Week7":  {"matches": [str(1529243 + i) for i in range(52, 59)]},                                                            # Matches 52-58, May 9  - May 15
-    "Week8":  {"matches": [str(1529243 + i) for i in range(59, 68)]},                                                            # Matches 59-67, May 16 - May 22
-    "Week9":  {"matches": [str(1529243 + i) for i in range(68, 71)]},                                                            # Matches 68-70, May 23-24 (+ playoffs TBD)
-    "Week10": {"matches": []},                                                                                                    # Playoffs TBD (Final May 31)
+    "Week7":  {"matches": [str(1529243 + i) for i in range(52, 60)]},                                                            # Matches 52-58, May 9  - May 15
+    "Week8":  {"matches": [str(1529243 + i) for i in range(60, 71)]},                                                            # Matches 59-67, May 16 - May 22
+    "Week9":  {"matches": [str(1529243 + i) for i in range(71, 75)]},                                                            # Matches 68-70, May 23-24 (+ playoffs TBD)                                                                                                  # Playoffs TBD (Final May 31)
 }
 
 owner_team_dict = {
