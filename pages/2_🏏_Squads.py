@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from helpers import read_gsheet, list_gsheet_tabs, read_file, build_role_nat_maps
+from helpers import read_gsheet, list_gsheet_tabs, read_file, build_role_nat_maps, find_col
 from get_bench_subs import compute_subs_core
 from settings import (
     squads_spreadsheet_url,
@@ -11,6 +11,33 @@ from settings import (
     price_list_spreadsheet_url,
     unsold_spreadsheet_url,
 )
+
+# IPL franchise brand colours — (background, text)
+# Chosen for maximum visual distinction, not raw brand accuracy
+TEAM_COLORS = {
+    "CSK":  ("rgba(246,196,22,0.5)",   "#000"),   # yellow
+    "DC":   ("rgba(0,90,200,0.5)",     "#fff"),   # royal blue
+    "GT":   ("rgba(180,138,36,0.5)",   "#000"),   # gold (more distinctive than their navy)
+    "KKR":  ("rgba(110,30,150,0.5)",   "#fff"),   # vibrant purple
+    "LSG":  ("rgba(0,188,212,0.5)",    "#000"),   # cyan/teal
+    "MI":   ("rgba(0,40,110,0.5)",     "#fff"),   # deep navy
+    "PBKS": ("rgba(237,27,36,0.5)",    "#fff"),   # red
+    "RCB":  ("rgba(180,10,30,0.5)",    "#fff"),   # dark crimson
+    "RR":   ("rgba(220,30,120,0.5)",   "#fff"),   # hot pink/magenta
+    "SRH":  ("rgba(239,95,0,0.5)",     "#000"),   # orange
+}
+
+@st.cache_data(ttl=600)
+def _load_player_team_map():
+    try:
+        df = read_gsheet(price_list_spreadsheet_url, "price_list")
+        name_col = find_col(df, "Player_name", "Player name", "Name")
+        team_col = find_col(df, "Team", "IPL Team", "Franchise")
+        if name_col and team_col:
+            return dict(zip(df[name_col].str.strip(), df[team_col].str.strip()))
+    except Exception:
+        pass
+    return {}
 
 st.set_page_config(layout="wide")
 st.title("Squads")
@@ -30,6 +57,8 @@ squad_df = read_gsheet(squads_spreadsheet_url, option)
 xi_df    = squad_df.iloc[0:11].reset_index(drop=True)
 bench_df = squad_df.iloc[15:19].reset_index(drop=True)
 
+player_team_map = _load_player_team_map()
+
 owners = [col for col in squad_df.columns if col.strip()]
 
 # Slot labels used as the index in the Compare view
@@ -44,18 +73,28 @@ def badge(text, bg, fg="#fff"):
         f'margin-left:6px;vertical-align:middle;">{text}</span>'
     )
 
-def player_row(name, slot, border=True):
-    """Render one player as an HTML row with optional C/VC badge."""
+def player_row(name, slot, border=True, team=None):
+    """Render one player as an HTML row with optional C/VC badge and team chip."""
     b = ""
     if slot == "C":
         b = badge("C", "#c9a227", "#000")
     elif slot == "VC":
         b = badge("VC", "#6c757d")
+    team_chip = ""
+    if team and team in TEAM_COLORS:
+        bg, _ = TEAM_COLORS[team]
+        solid = bg.replace("0.5)", "1)")
+        tint  = bg.replace("0.5)", "0.18)")
+        team_chip = (
+            f'<span style="background:{tint};color:{solid};border:1px solid {solid};'
+            f'padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;margin-left:5px;">'
+            f'{team}</span>'
+        )
     border_style = "border-bottom:1px solid rgba(128,128,128,0.2);" if border else ""
     return (
         f'<div style="display:flex;align-items:center;padding:7px 4px;{border_style}">'
         f'<span style="color:rgba(128,128,128,0.7);font-size:12px;width:28px;">{slot}</span>'
-        f'<span style="flex:1;">{name}</span>{b}'
+        f'<span style="flex:1;">{name}</span>{team_chip}{b}'
         f'</div>'
     )
 
@@ -64,12 +103,12 @@ def squad_card(owner):
     bench_players = [p for p in bench_df[owner].tolist() if p.strip()]
 
     xi_html = "".join(
-        player_row(p, XI_SLOTS[i], border=(i < 10))
+        player_row(p, XI_SLOTS[i], border=(i < 10), team=player_team_map.get(p))
         for i, p in enumerate(xi_players)
         if p.strip()
     )
     bench_html = "".join(
-        player_row(p, f"B{i+1}", border=(i < len(bench_players) - 1))
+        player_row(p, f"B{i+1}", border=(i < len(bench_players) - 1), team=player_team_map.get(p))
         for i, p in enumerate(bench_players)
     ) or '<div style="color:rgba(128,128,128,0.5);padding:6px 4px;font-size:13px;">—</div>'
 
@@ -97,15 +136,32 @@ with tab_compare:
         for i, slot in enumerate(slots):
             row = {"": slot}
             for owner in owners:
-                row[owner] = raw_df[owner].iloc[i] if i < len(raw_df) else ""
+                name = raw_df[owner].iloc[i] if i < len(raw_df) else ""
+                team = player_team_map.get(str(name).strip(), "")
+                row[owner] = f"{name} · {team}" if name and team else name
             rows.append(row)
         return pd.DataFrame(rows).set_index("")
 
+    def _team_cell_style(val):
+        parts = str(val).rsplit(" · ", 1)
+        team = parts[-1].strip() if len(parts) == 2 else player_team_map.get(str(val).strip(), "")
+        if team and team in TEAM_COLORS:
+            bg, _ = TEAM_COLORS[team]
+            tint = bg.replace("0.5)", "0.12)")
+            return f"background-color:{tint};border-left:3px solid {bg};"
+        return ""
+
     st.caption("Playing XI")
-    st.dataframe(section_df(xi_df, XI_SLOTS), use_container_width=True, height=(len(XI_SLOTS) + 1) * 35 + 3)
+    xi_section = section_df(xi_df, XI_SLOTS)
+    st.dataframe(
+        xi_section.style.applymap(_team_cell_style),
+        use_container_width=True,
+        height=(len(XI_SLOTS) + 1) * 35 + 3,
+    )
 
     st.caption("Bench")
-    st.dataframe(section_df(bench_df, BENCH_SLOTS), use_container_width=True)
+    bench_section = section_df(bench_df, BENCH_SLOTS)
+    st.dataframe(bench_section.style.applymap(_team_cell_style), use_container_width=True)
 
 # ── Individual Squads ─────────────────────────────────────────────────────────
 with tab_individual:
@@ -173,6 +229,16 @@ def compute_bench_subs(week, raw_squad_df, player_weekly_pts_df):
     role_map, nationality_map = _load_role_nat_maps()
     return compute_subs_core(raw_squad_df, players_who_played, role_map, nationality_map, player_pts)
 
+
+# ── Team colour legend ────────────────────────────────────────────────────────
+chips = " ".join(
+    f'<span style="background:{bg.replace("0.5)","0.18)")};color:{bg.replace("0.5)","1)")};'
+    f'border:1px solid {bg.replace("0.5)","1)")};'
+    f'padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin:2px 3px;'
+    f'display:inline-block;">{team}</span>'
+    for team, (bg, _) in TEAM_COLORS.items()
+)
+st.html(f'<div style="margin-top:8px;margin-bottom:4px;">{chips}</div>')
 
 st.divider()
 st.subheader(f"Bench Substitution Suggestions — {option}")
