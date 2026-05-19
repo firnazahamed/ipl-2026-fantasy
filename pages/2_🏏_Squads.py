@@ -51,10 +51,11 @@ with col_sel:
 # ── Load & parse ──────────────────────────────────────────────────────────────
 # GSheet layout (0-indexed after header):
 #   0–10  → Playing XI  (0 = captain, 1 = vice-captain)
-#   11–14 → Empty separator rows
+#   11–14 → Substitutions made this week (bench player subbed in, 0–4 per owner)
 #   15–18 → Bench (up to 4 players)
 squad_df = read_gsheet(squads_spreadsheet_url, option)
 xi_df    = squad_df.iloc[0:11].reset_index(drop=True)
+subs_df  = squad_df.iloc[11:15].reset_index(drop=True)
 bench_df = squad_df.iloc[15:19].reset_index(drop=True)
 
 player_team_map = _load_player_team_map()
@@ -63,6 +64,7 @@ owners = [col for col in squad_df.columns if col.strip()]
 
 # Slot labels used as the index in the Compare view
 XI_SLOTS    = ["C", "VC"] + [str(i) for i in range(3, 12)]
+SUBS_SLOTS  = ["S1", "S2", "S3", "S4"]
 BENCH_SLOTS = ["B1", "B2", "B3", "B4"]
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
@@ -100,17 +102,30 @@ def player_row(name, slot, border=True, team=None):
 
 def squad_card(owner):
     xi_players    = xi_df[owner].tolist()
-    bench_players = [p for p in bench_df[owner].tolist() if p.strip()]
+    subs_players  = [p for p in subs_df[owner].tolist() if str(p).strip()]
+    bench_players = [p for p in bench_df[owner].tolist() if str(p).strip()]
 
     xi_html = "".join(
         player_row(p, XI_SLOTS[i], border=(i < 10), team=player_team_map.get(p))
         for i, p in enumerate(xi_players)
-        if p.strip()
+        if str(p).strip()
     )
     bench_html = "".join(
         player_row(p, f"B{i+1}", border=(i < len(bench_players) - 1), team=player_team_map.get(p))
         for i, p in enumerate(bench_players)
     ) or '<div style="color:rgba(128,128,128,0.5);padding:6px 4px;font-size:13px;">—</div>'
+
+    subs_section_html = ""
+    if subs_players:
+        subs_html = "".join(
+            player_row(p, f"S{i+1}", border=(i < len(subs_players) - 1), team=player_team_map.get(p))
+            for i, p in enumerate(subs_players)
+        )
+        subs_section_html = f"""
+  <div style="font-size:13px;font-weight:600;letter-spacing:.4px;
+              text-transform:uppercase;margin:14px 0 8px;
+              color:rgba(128,128,128,0.8);">Substitutions</div>
+  {subs_html}"""
 
     return f"""
 <div style="border:1px solid rgba(128,128,128,0.25);border-radius:10px;
@@ -122,7 +137,7 @@ def squad_card(owner):
   <div style="font-size:13px;font-weight:600;letter-spacing:.4px;
               text-transform:uppercase;margin:14px 0 8px;
               color:rgba(128,128,128,0.8);">Bench</div>
-  {bench_html}
+  {bench_html}{subs_section_html}
 </div>
 """
 
@@ -151,17 +166,27 @@ with tab_compare:
             return f"background-color:{tint};border-left:3px solid {bg};"
         return ""
 
-    st.caption("Playing XI")
-    xi_section = section_df(xi_df, XI_SLOTS)
-    st.dataframe(
-        xi_section.style.applymap(_team_cell_style),
-        use_container_width=True,
-        height=(len(XI_SLOTS) + 1) * 35 + 3,
-    )
-
-    st.caption("Bench")
+    xi_section    = section_df(xi_df, XI_SLOTS)
     bench_section = section_df(bench_df, BENCH_SLOTS)
-    st.dataframe(bench_section.style.applymap(_team_cell_style), use_container_width=True)
+
+    def separator(label):
+        df = pd.DataFrame([{o: "" for o in owners}], index=[label])
+        df.index.name = ""
+        return df
+
+    any_subs = subs_df[owners].apply(lambda c: c.str.strip().ne("")).any().any()
+    parts = [xi_section, separator("── BENCH ──"), bench_section]
+    total_rows = len(XI_SLOTS) + 1 + len(BENCH_SLOTS)
+    if any_subs:
+        subs_section = section_df(subs_df, SUBS_SLOTS)
+        parts += [separator("── SUBS ──"), subs_section]
+        total_rows += 1 + len(SUBS_SLOTS)
+    combined = pd.concat(parts)
+    st.dataframe(
+        combined.style.applymap(_team_cell_style),
+        use_container_width=True,
+        height=(total_rows + 1) * 35 + 3,
+    )
 
 # ── Individual Squads ─────────────────────────────────────────────────────────
 with tab_individual:
