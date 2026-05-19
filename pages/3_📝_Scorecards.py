@@ -72,6 +72,9 @@ def _highlight_owner(row):
     color = OWNER_PALETTE.get(row["Owner"], "")
     return [f"background-color: {color}" if color else ""] * len(row)
 
+def _f(spec):
+    return lambda x: format(x, spec) if pd.notna(x) else "-"
+
 styled = (
     display_df.style
     .apply(_highlight_owner, axis=1)
@@ -80,13 +83,12 @@ styled = (
     .background_gradient(subset=["Bowl Pts"], cmap="Purples")
     .format(
         {
-            "Runs": "{:.0f}", "Balls": "{:.0f}", "4s": "{:.0f}", "6s": "{:.0f}",
-            "SR": "{:.1f}", "Bat Pts": "{:.0f}", "Overs": "{:.1f}",
-            "Wkts": "{:.0f}", "Runs Cvd": "{:.0f}", "Econ": "{:.2f}",
-            "Bowl Pts": "{:.0f}", "Field Pts": "{:.0f}", "Bonus": "{:.0f}",
-            "Total Pts": "{:.0f}",
-        },
-        na_rep="-",
+            "Runs": _f(".0f"), "Balls": _f(".0f"), "4s": _f(".0f"), "6s": _f(".0f"),
+            "SR": _f(".1f"), "Bat Pts": _f(".0f"), "Overs": _f(".1f"),
+            "Wkts": _f(".0f"), "Runs Cvd": _f(".0f"), "Econ": _f(".2f"),
+            "Bowl Pts": _f(".0f"), "Field Pts": _f(".0f"), "Bonus": _f(".0f"),
+            "Total Pts": _f(".0f"),
+        }
     )
 )
 
