@@ -68,6 +68,14 @@ display_cols = {
 
 display_df = scorecard_df[list(display_cols.keys())].rename(columns=display_cols)
 
+_numeric_cols = [
+    "Runs", "Balls", "4s", "6s", "SR", "Bat Pts", "Overs",
+    "Wkts", "Runs Cvd", "Econ", "Bowl Pts", "Field Pts", "Bonus", "Total Pts",
+]
+for _col in _numeric_cols:
+    if _col in display_df.columns:
+        display_df[_col] = pd.to_numeric(display_df[_col], errors="coerce")
+
 def _highlight_owner(row):
     color = OWNER_PALETTE.get(row["Owner"], "")
     return [f"background-color: {color}" if color else ""] * len(row)
