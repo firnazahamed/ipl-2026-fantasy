@@ -23,14 +23,10 @@ player_name_col = next(c for c in unsold_df.columns if c.strip().lower() == "pla
 unsold_names = sorted(unsold_df[player_name_col].dropna().tolist())
 week_options = sorted(weeks.keys(), key=lambda x: int(x.replace("Week", "")))
 
-# Cache all squad sheets so we can fall back per owner
-_all_squad_dfs = {w: (squad_df if w == latest_week else read_gsheet(squads_spreadsheet_url, w))
-                  for w in squad_tabs}
-
 def _owner_squad(owner):
     """Return (week_label, squad_list) from the most recent week the owner has a squad."""
     for w in reversed(squad_tabs):
-        df = _all_squad_dfs[w]
+        df = squad_df if w == latest_week else read_gsheet(squads_spreadsheet_url, w)
         if owner in df.columns:
             players = [p for p in df[owner].tolist() if p and str(p).strip() and str(p).strip() != "nan"]
             if players:

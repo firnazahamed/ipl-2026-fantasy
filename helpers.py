@@ -56,10 +56,18 @@ def retrieve_scorecards():
 @st.cache_data(ttl=600)
 def read_gsheet(spreadsheet_url, sheet_name):
     import gspread
+    import time
     gc = gspread.service_account_from_dict(dict(st.secrets["gcp_service_account"]))
     worksheet = gc.open_by_url(spreadsheet_url).worksheet(sheet_name)
-    data = worksheet.get_all_values()
-    return pd.DataFrame(data[1:], columns=data[0])
+    for attempt in range(4):
+        try:
+            data = worksheet.get_all_values()
+            return pd.DataFrame(data[1:], columns=data[0])
+        except gspread.exceptions.APIError as e:
+            if e.response.status_code == 429 and attempt < 3:
+                time.sleep(2 ** attempt * 5)  # 5s, 10s, 20s
+            else:
+                raise
 
 
 @st.cache_data(ttl=600)
