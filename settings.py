@@ -25,7 +25,7 @@ weeks = {
     "Week6":  {"matches": [str(1529243 + i) for i in range(44, 52)]},                                                            # Matches 44-51, May 2  - May 8
     "Week7":  {"matches": [str(1529243 + i) for i in range(52, 60)]},                                                            # Matches 52-58, May 9  - May 15
     "Week8":  {"matches": [str(1529243 + i) for i in range(60, 71)]},                                                            # Matches 59-67, May 16 - May 22
-    "Week9":  {"matches": [str(1529243 + i) for i in range(71, 75)]},                                                            # Matches 68-70, May 23-24 (+ playoffs TBD)                                                                                                  # Playoffs TBD (Final May 31)
+    "Week9":  {"matches": [str(1535462 + i) for i in range(4)]},                                 
 }
 
 owner_team_dict = {
@@ -324,6 +324,7 @@ player_id_dict = {
  'Zeeshan Ansari': '942371',
  'Blessing Muzarabani': '827051',
  'George Linde': '481875',
+ 'Dasun Shanaka': '437316',
  }
 
 service_account_credentials = "credentials/cricinfo-273202-a7420ddc1abd.json"

@@ -6,10 +6,10 @@ from helpers import read_file
 st.set_page_config(layout="wide")
 
 ipl_data = pd.DataFrame({
-    "Season": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
-    "Winner":          ["Ashkay", "Mabbu", "Saju",   "Saju",  "Firi",  "Firi",   "Vaithy", "Srini"],
-    "Runner-up":       ["Mabbu",  "Bhar",  "Siddhu", "Srini", "Bhar",  "Srini",  "Ashkay", "Mabbu"],
-    "Second runner-up":["Bhar",   "Shar",  "Srini",  "Firi",  "Saju",  "Ashkay", "Abhi",   "Firi"],
+    "Season": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+    "Winner":          ["Ashkay", "Mabbu", "Saju",   "Saju",  "Firi",  "Firi",   "Vaithy", "Srini", "Srini"],
+    "Runner-up":       ["Mabbu",  "Bhar",  "Siddhu", "Srini", "Bhar",  "Srini",  "Ashkay", "Mabbu", "Firi"],
+    "Second runner-up":["Bhar",   "Shar",  "Srini",  "Firi",  "Saju",  "Ashkay", "Abhi",   "Firi",  "Ashkay"],
     "Type": "IPL",
 })
 
